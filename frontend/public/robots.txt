@@ -1,0 +1,59 @@
+# ShareYourSales SEO Robots Configuration
+# Last Updated: 2025-11-09
+
+User-agent: *
+Allow: /
+Allow: /marketplace
+Allow: /pricing
+Allow: /about
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+
+# Disallow admin et authenticated routes
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /subscription/
+Disallow: /messages/
+Disallow: /products/
+Disallow: /campaigns/
+Disallow: /affiliates/
+Disallow: /performance/
+Disallow: /logs/
+
+# Crawl delay and request rate
+Crawl-delay: 1
+
+# Sitemaps
+Sitemap: https://shareyoursales.ma/sitemap.xml
+Sitemap: https://shareyoursales.ma/sitemap-products.xml
+Sitemap: https://shareyoursales.ma/sitemap-merchants.xml
+Sitemap: https://shareyoursales.ma/sitemap-pages.xml
+
+# Specific User-Agents
+User-agent: AdsBot-Google
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Block bad bots and scrapers
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /

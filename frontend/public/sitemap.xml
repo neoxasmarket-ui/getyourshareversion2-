@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://shareyoursales.ma/</loc>
+    <lastmod>2025-11-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Key Public Pages -->
+  <url>
+    <loc>https://shareyoursales.ma/pricing</loc>
+    <lastmod>2025-11-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://shareyoursales.ma/marketplace</loc>
+    <lastmod>2025-11-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://shareyoursales.ma/about</loc>
+    <lastmod>2025-11-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://shareyoursales.ma/contact</loc>
+    <lastmod>2025-11-09</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://shareyoursales.ma/privacy</loc>
+    <lastmod>2025-11-09</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://shareyoursales.ma/terms</loc>
+    <lastmod>2025-11-09</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <!-- Auth Pages (for discoverability) -->
+  <url>
+    <loc>https://shareyoursales.ma/login</loc>
+    <lastmod>2025-11-09</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://shareyoursales.ma/register</loc>
+    <lastmod>2025-11-09</lastmod>
+    <changefreq>never</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset>

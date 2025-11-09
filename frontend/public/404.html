@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr-MA">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Non Trouvée - ShareYourSales</title>
+    <meta name="description" content="La page que vous recherchez n'existe pas. Retournez à l'accueil ou explorez nos services.">
+    <meta name="robots" content="noindex, follow">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .error-container {
+            text-align: center;
+            max-width: 600px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-code {
+            font-size: 120px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #fbbf24, #f87171);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 2px solid #fff;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .suggestions {
+            margin-top: 50px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            text-align: left;
+        }
+
+        .suggestions h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .suggestions ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .suggestions li {
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid #fbbf24;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .suggestions li:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .suggestions a {
+            color: #fbbf24;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .suggestions a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .error-code {
+                font-size: 80px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            p {
+                font-size: 1rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code">404</div>
+
+        <h1>Oups! Page Non Trouvée</h1>
+
+        <p>
+            La page que vous recherchez n'existe pas ou a été déplacée.
+            Ne vous inquiétez pas, nous sommes là pour vous aider!
+        </p>
+
+        <div class="button-group">
+            <button class="btn btn-primary" onclick="window.location.href='/'">
+                🏠 Retour à l'Accueil
+            </button>
+            <button class="btn btn-secondary" onclick="window.history.back()">
+                ← Retour à la Page Précédente
+            </button>
+        </div>
+
+        <div class="suggestions">
+            <h2>💡 Explorez nos Services</h2>
+            <ul>
+                <li>📊 <a href="/marketplace">Marketplace - Découvrir les offres</a></li>
+                <li>💰 <a href="/pricing">Tarifs - Choisir votre plan</a></li>
+                <li>ℹ️ <a href="/about">À Propos - En savoir plus</a></li>
+                <li>📧 <a href="/contact">Contact - Nous poser une question</a></li>
+                <li>🔐 <a href="/login">Se Connecter - Accéder à votre compte</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Log 404 error for monitoring
+        console.error('404 Error - Page not found:', window.location.pathname);
+
+        // Optional: Send error tracking to analytics
+        if (window.gtag) {
+            gtag('event', 'page_not_found', {
+                page_path: window.location.pathname
+            });
+        }
+    </script>
+</body>
+</html>
