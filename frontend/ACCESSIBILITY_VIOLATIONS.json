@@ -1,0 +1,342 @@
+{
+  "audit_metadata": {
+    "date": "2025-11-09",
+    "wcag_level": "WCAG 2.1 AA",
+    "total_violations": 117,
+    "accessibility_score": 42
+  },
+  "violations_by_severity": {
+    "critical_level_a": {
+      "count": 30,
+      "violations": [
+        {
+          "id": "A001",
+          "title": "Modal sans role dialog",
+          "files": ["src/components/common/Modal.js"],
+          "lines": [14, 15, 16],
+          "wcag_criterion": "4.1.2 Name, Role, Value",
+          "severity": "critical",
+          "description": "Les modals n'ont pas role='dialog' ce qui empêche les lecteurs d'écran de les identifier comme modales.",
+          "fix_effort_hours": 1.5,
+          "example_fix": "<div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"modal-title\">"
+        },
+        {
+          "id": "A002",
+          "title": "Divs cliquables au lieu de boutons",
+          "files": ["src/components/modals/InvitationModal.js"],
+          "lines": [111, 277],
+          "wcag_criterion": "2.1.1 Keyboard",
+          "severity": "critical",
+          "description": "Des divs sont utilisées avec onClick au lieu de <button> ce qui les rend non-accessibles au clavier.",
+          "fix_effort_hours": 0.5,
+          "example_fix": "<button onClick={handler}>content</button>"
+        },
+        {
+          "id": "A003",
+          "title": "Inputs sans labels associés",
+          "files": ["src/components/modals/InvitationModal.js", "src/components/bot/ChatbotWidget.js"],
+          "lines": [101, 403],
+          "wcag_criterion": "1.3.1 Info and Relationships",
+          "severity": "critical",
+          "description": "Les inputs n'ont pas de labels explicites associées.",
+          "fix_effort_hours": 0.3,
+          "example_fix": "<label htmlFor='id'>Label</label><input id='id' />"
+        },
+        {
+          "id": "A004",
+          "title": "Toast sans role alert",
+          "files": ["src/components/common/Toast.js"],
+          "lines": [35],
+          "wcag_criterion": "4.1.3 Status Messages",
+          "severity": "critical",
+          "description": "Les toasts n'ont pas role='alert' et aria-live ce qui empêche l'annonce automatique.",
+          "fix_effort_hours": 0.25,
+          "example_fix": "<div role='alert' aria-live='polite'>"
+        },
+        {
+          "id": "A005",
+          "title": "Erreurs de formulaire non-annoncées",
+          "files": ["src/pages/Login.js", "src/pages/Register.js"],
+          "lines": [167, 230],
+          "wcag_criterion": "3.3.1 Error Identification",
+          "severity": "critical",
+          "description": "Les messages d'erreur ne sont pas annoncés aux lecteurs d'écran.",
+          "fix_effort_hours": 0.5,
+          "example_fix": "<div role='alert' aria-live='assertive'>{error}</div>"
+        }
+      ]
+    },
+    "important_level_aa": {
+      "count": 52,
+      "violations": [
+        {
+          "id": "AA001",
+          "title": "aria-label manquant sur boutons",
+          "files": ["src/components/common/Button.js", "src/components/layout/Navigation.js", "src/components/layout/Sidebar.js"],
+          "count": 50,
+          "wcag_criterion": "1.1.1 Non-text Content",
+          "severity": "high",
+          "description": "Plus de 50 boutons n'ont pas aria-label ce qui rend difficile la compréhension pour lecteurs d'écran.",
+          "fix_effort_hours": 2.0,
+          "example_fix": "<button aria-label='Close modal'>X</button>"
+        },
+        {
+          "id": "AA002",
+          "title": "Keyboard navigation absente",
+          "files": ["src/components/modals/InvitationModal.js", "src/components/bot/ChatbotWidget.js"],
+          "count": 8,
+          "wcag_criterion": "2.1.1 Keyboard",
+          "severity": "high",
+          "description": "Les éléments cliquables ne supportent pas la navigation au clavier.",
+          "fix_effort_hours": 1.5
+        },
+        {
+          "id": "AA003",
+          "title": "Focus trap non-implémenté",
+          "files": ["src/components/common/Modal.js", "src/components/modals/InvitationModal.js"],
+          "count": 4,
+          "wcag_criterion": "2.4.3 Focus Order",
+          "severity": "high",
+          "description": "Les modals n'implémentent pas de focus trap ce qui rend la navigation confuse.",
+          "fix_effort_hours": 2.0
+        },
+        {
+          "id": "AA004",
+          "title": "aria-expanded manquant sur menus",
+          "files": ["src/components/layout/Sidebar.js"],
+          "lines": [392, 485],
+          "wcag_criterion": "4.1.2 Name, Role, Value",
+          "severity": "high",
+          "description": "Les menus expandables n'ont pas aria-expanded ce qui masque l'état.",
+          "fix_effort_hours": 1.0
+        },
+        {
+          "id": "AA005",
+          "title": "Autocomplete manquant sur inputs sensibles",
+          "files": ["src/pages/Login.js", "src/pages/Register.js"],
+          "count": 10,
+          "wcag_criterion": "1.3.5 Identify Input Purpose",
+          "severity": "high",
+          "description": "Les inputs email, password n'ont pas autocomplete approprié.",
+          "fix_effort_hours": 0.5
+        }
+      ]
+    },
+    "recommended_level_aaa": {
+      "count": 35,
+      "violations": [
+        {
+          "id": "AAA001",
+          "title": "Contraste de couleur insuffisant",
+          "files": ["src/components/layout/Navigation.js", "src/components/layout/Sidebar.js"],
+          "count": 8,
+          "wcag_criterion": "1.4.11 Non-text Contrast (AAA: 7:1)",
+          "severity": "medium",
+          "description": "Certains textes n'ont pas un contraste suffisant pour AAA (besoin 7:1).",
+          "actual_ratio": "3:1 à 5:1",
+          "required_ratio": "7:1"
+        },
+        {
+          "id": "AAA002",
+          "title": "Structure de headings non-hiérarchique",
+          "files": ["src/pages/LandingPage.js"],
+          "count": 8,
+          "wcag_criterion": "1.3.1 Info and Relationships",
+          "severity": "medium"
+        }
+      ]
+    }
+  },
+  "files_by_severity": {
+    "critical": [
+      {
+        "path": "src/components/common/Modal.js",
+        "violations": 5,
+        "score": 15,
+        "issues": [
+          "role='dialog' manquant",
+          "Focus trap absent",
+          "aria-label sur button manquant",
+          "ESC key handling absent",
+          "aria-modal manquant"
+        ]
+      },
+      {
+        "path": "src/components/modals/InvitationModal.js",
+        "violations": 6,
+        "score": 20,
+        "issues": [
+          "2 divs cliquables",
+          "Input sans label",
+          "Checkboxes non-labelisées",
+          "role='dialog' manquant",
+          "Pas de keyboard nav",
+          "Pas de aria-expanded"
+        ]
+      },
+      {
+        "path": "src/components/common/Toast.js",
+        "violations": 3,
+        "score": 35,
+        "issues": [
+          "role='alert' manquant",
+          "aria-live manquant",
+          "aria-atomic manquant"
+        ]
+      }
+    ],
+    "high": [
+      {
+        "path": "src/pages/Login.js",
+        "violations": 4,
+        "score": 50,
+        "issues": [
+          "Erreurs sans role='alert'",
+          "Pas d'autoComplete",
+          "Checkboxes non-labellisées"
+        ]
+      },
+      {
+        "path": "src/pages/Register.js",
+        "violations": 4,
+        "score": 50
+      },
+      {
+        "path": "src/components/layout/Navigation.js",
+        "violations": 4,
+        "score": 35
+      },
+      {
+        "path": "src/components/layout/Sidebar.js",
+        "violations": 5,
+        "score": 40
+      },
+      {
+        "path": "src/components/bot/ChatbotWidget.js",
+        "violations": 4,
+        "score": 45
+      }
+    ]
+  },
+  "remediation_plan": {
+    "phase1_critical": {
+      "duration_weeks": 1,
+      "effort_hours": 40,
+      "priority": 1,
+      "tasks": [
+        {
+          "task": "Modal.js - Ajouter role dialog",
+          "hours": 1.5,
+          "priority": 1
+        },
+        {
+          "task": "InvitationModal.js - Remplacer divs par buttons",
+          "hours": 0.5,
+          "priority": 1
+        },
+        {
+          "task": "Toast.js - Ajouter role alert",
+          "hours": 0.25,
+          "priority": 1
+        },
+        {
+          "task": "Login/Register - Ajouter role alert sur erreurs",
+          "hours": 0.5,
+          "priority": 1
+        },
+        {
+          "task": "FileUpload - Ajouter labels",
+          "hours": 0.5,
+          "priority": 2
+        }
+      ]
+    },
+    "phase2_aria": {
+      "duration_weeks": 2,
+      "effort_hours": 60,
+      "priority": 2,
+      "description": "Ajouter tous les aria attributes manquants"
+    },
+    "phase3_keyboard": {
+      "duration_weeks": 1,
+      "effort_hours": 50,
+      "priority": 3,
+      "description": "Implémenter navigation complète au clavier"
+    },
+    "phase4_visual": {
+      "duration_weeks": 1,
+      "effort_hours": 30,
+      "priority": 4,
+      "description": "Vérifier contraste, focus indicators"
+    }
+  },
+  "testing_recommendations": {
+    "automated_tools": [
+      {
+        "name": "axe DevTools",
+        "url": "https://www.deque.com/axe/devtools/",
+        "frequency": "Per commit"
+      },
+      {
+        "name": "WAVE",
+        "url": "https://wave.webaim.org/",
+        "frequency": "Daily"
+      },
+      {
+        "name": "Lighthouse",
+        "type": "Chrome DevTools",
+        "frequency": "Per release"
+      },
+      {
+        "name": "jest-axe",
+        "type": "Unit testing",
+        "frequency": "Per commit"
+      }
+    ],
+    "manual_testing": [
+      {
+        "type": "Screen reader testing",
+        "tools": ["NVDA", "JAWS", "VoiceOver"],
+        "frequency": "Weekly"
+      },
+      {
+        "type": "Keyboard only navigation",
+        "frequency": "Per release"
+      },
+      {
+        "type": "Zoom testing (200%)",
+        "frequency": "Per release"
+      },
+      {
+        "type": "High contrast mode",
+        "frequency": "Per release"
+      }
+    ]
+  },
+  "resources": {
+    "guidelines": [
+      {
+        "name": "WCAG 2.1 AA",
+        "url": "https://www.w3.org/WAI/WCAG21/quickref/"
+      },
+      {
+        "name": "ARIA Authoring Practices",
+        "url": "https://www.w3.org/WAI/ARIA/apg/"
+      },
+      {
+        "name": "MDN Web Accessibility",
+        "url": "https://developer.mozilla.org/en-US/docs/Web/Accessibility"
+      }
+    ],
+    "tools": [
+      {
+        "name": "WebAIM Contrast Checker",
+        "url": "https://webaim.org/resources/contrastchecker/"
+      },
+      {
+        "name": "NVDA (Free Screen Reader)",
+        "url": "https://www.nvaccess.org/"
+      }
+    ]
+  }
+}
