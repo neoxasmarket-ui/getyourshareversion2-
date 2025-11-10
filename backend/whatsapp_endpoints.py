@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from .services.whatsapp_business_service import whatsapp_service, WhatsAppMessageType
+from services.whatsapp_business_service import whatsapp_service, WhatsAppMessageType
 
 router = APIRouter(prefix="/api/whatsapp", tags=["WhatsApp Business"])
 
