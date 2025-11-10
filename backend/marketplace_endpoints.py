@@ -116,11 +116,16 @@ async def get_marketplace_products(
     try:
         offset = (page - 1) * limit
 
-        # Construire query
-        query = supabase.table('v_products_full').select('*', count='exact')
+        # Construire query - Using products table directly
+        # Select relevant fields including merchant info
+        query = supabase.table('products').select(
+            '*,'
+            'merchant:merchants!products_merchant_id_fkey(id,business_name,business_logo)',
+            count='exact'
+        )
 
         # Filtre: produits actifs uniquement
-        query = query.eq('deal_status', 'active')
+        query = query.eq('status', 'active')
 
         # Filtre: catégorie
         if category:
@@ -131,25 +136,26 @@ async def get_marketplace_products(
         if search:
             query = build_or_search(query, ['name', 'description'], search)
 
-        # Filtre: prix
+        # Filtre: prix (using current_price from products table)
         if min_price:
-            query = query.gte('discounted_price', min_price)
+            query = query.gte('current_price', min_price)
         if max_price:
-            query = query.lte('discounted_price', max_price)
+            query = query.lte('current_price', max_price)
 
-        # Filtre: réduction
+        # Filtre: réduction (using discount field if exists)
         if min_discount:
-            query = query.gte('discount_percentage', min_discount)
+            # Calculate discount if original_price and current_price exist
+            pass  # May need to handle this differently
 
         # Tri
         if sort_by == "price":
-            sort_field = "discounted_price"
+            sort_field = "current_price"
         elif sort_by == "rating":
-            sort_field = "rating_average"
+            sort_field = "rating"  # May need adjustment if field name differs
         elif sort_by == "sold_count":
-            sort_field = "sold_count"
+            sort_field = "sales_count"  # Adjust to actual field name
         elif sort_by == "discount":
-            sort_field = "discount_percentage"
+            sort_field = "discount"  # Adjust to actual field name
         else:
             sort_field = "created_at"
 

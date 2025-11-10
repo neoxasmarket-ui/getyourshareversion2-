@@ -3055,55 +3055,52 @@ from endpoints.leads_endpoints import (
     # Gestion des leads
     create_lead,
     validate_lead,
-    reject_lead,
-    get_lead_details,
+    get_lead,
     get_campaign_leads,
-    get_influencer_leads,
-    get_merchant_leads,
-    
+    get_my_leads,
+
     # Gestion des dépôts
     create_deposit,
     recharge_deposit,
-    get_deposit_balance,
-    get_deposit_transactions,
-    check_low_balance_deposits,
-    
+    get_my_deposit_balance,
+    get_deposit_history,
+    get_all_my_deposits,
+    get_deposit_stats,
+
     # Statistiques
-    get_lead_stats,
-    get_campaign_stats,
-    get_influencer_performance,
-    
+    get_campaign_lead_stats,
+    get_my_influencer_stats,
+
     # Accords
     create_agreement,
-    get_merchant_agreements,
-    sign_agreement
+    get_my_agreements
 )
 
 # Endpoints LEADS - Création et validation
 app.add_api_route("/api/leads/create", create_lead, methods=["POST"], tags=["Leads"])
 app.add_api_route("/api/leads/{lead_id}/validate", validate_lead, methods=["PUT"], tags=["Leads"])
-app.add_api_route("/api/leads/{lead_id}/reject", reject_lead, methods=["PUT"], tags=["Leads"])
-app.add_api_route("/api/leads/{lead_id}", get_lead_details, methods=["GET"], tags=["Leads"])
+# app.add_api_route("/api/leads/{lead_id}/reject", reject_lead, methods=["PUT"], tags=["Leads"])  # Function not implemented
+app.add_api_route("/api/leads/{lead_id}", get_lead, methods=["GET"], tags=["Leads"])
 app.add_api_route("/api/leads/campaign/{campaign_id}", get_campaign_leads, methods=["GET"], tags=["Leads"])
-app.add_api_route("/api/leads/influencer/{influencer_id}", get_influencer_leads, methods=["GET"], tags=["Leads"])
-app.add_api_route("/api/leads/merchant/my-leads", get_merchant_leads, methods=["GET"], tags=["Leads"])
+# app.add_api_route("/api/leads/influencer/{influencer_id}", get_influencer_leads, methods=["GET"], tags=["Leads"])  # Function not implemented
+app.add_api_route("/api/leads/my-leads", get_my_leads, methods=["GET"], tags=["Leads"])
 
 # Endpoints DÉPÔTS - Gestion financière
 app.add_api_route("/api/leads/deposits/create", create_deposit, methods=["POST"], tags=["Deposits"])
 app.add_api_route("/api/leads/deposits/recharge", recharge_deposit, methods=["POST"], tags=["Deposits"])
-app.add_api_route("/api/leads/deposits/balance", get_deposit_balance, methods=["GET"], tags=["Deposits"])
-app.add_api_route("/api/leads/deposits/transactions", get_deposit_transactions, methods=["GET"], tags=["Deposits"])
-app.add_api_route("/api/leads/deposits/low-balance", check_low_balance_deposits, methods=["GET"], tags=["Deposits"])
+app.add_api_route("/api/leads/deposits/balance", get_my_deposit_balance, methods=["GET"], tags=["Deposits"])
+app.add_api_route("/api/leads/deposits/history", get_deposit_history, methods=["GET"], tags=["Deposits"])
+app.add_api_route("/api/leads/deposits/all", get_all_my_deposits, methods=["GET"], tags=["Deposits"])
+app.add_api_route("/api/leads/deposits/stats", get_deposit_stats, methods=["GET"], tags=["Deposits"])
 
 # Endpoints STATISTIQUES
-app.add_api_route("/api/leads/stats/overview", get_lead_stats, methods=["GET"], tags=["Lead Stats"])
-app.add_api_route("/api/leads/stats/campaign/{campaign_id}", get_campaign_stats, methods=["GET"], tags=["Lead Stats"])
-app.add_api_route("/api/leads/stats/influencer/{influencer_id}", get_influencer_performance, methods=["GET"], tags=["Lead Stats"])
+app.add_api_route("/api/leads/stats/campaign/{campaign_id}", get_campaign_lead_stats, methods=["GET"], tags=["Lead Stats"])
+app.add_api_route("/api/leads/stats/influencer", get_my_influencer_stats, methods=["GET"], tags=["Lead Stats"])
 
 # Endpoints ACCORDS PARTENARIATS
 app.add_api_route("/api/leads/agreements/create", create_agreement, methods=["POST"], tags=["Agreements"])
-app.add_api_route("/api/leads/agreements/merchant", get_merchant_agreements, methods=["GET"], tags=["Agreements"])
-app.add_api_route("/api/leads/agreements/{agreement_id}/sign", sign_agreement, methods=["PUT"], tags=["Agreements"])
+app.add_api_route("/api/leads/agreements/my-agreements", get_my_agreements, methods=["GET"], tags=["Agreements"])
+# app.add_api_route("/api/leads/agreements/{agreement_id}/sign", sign_agreement, methods=["PUT"], tags=["Agreements"])  # Function not implemented
 
 if __name__ == "__main__":
     import uvicorn
