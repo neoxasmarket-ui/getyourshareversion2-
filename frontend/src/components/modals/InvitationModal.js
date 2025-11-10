@@ -162,7 +162,7 @@ const InvitationModal = ({ onClose, onSent }) => {
               <X aria-hidden="true" />
             </button>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-1">
               <h3 id="invitation-modal-title" className="text-lg font-semibold">Sélectionnez un affilié</h3>
               <div className="mt-3">
@@ -259,6 +259,7 @@ const InvitationModal = ({ onClose, onSent }) => {
                   {sending ? 'Envoi...' : (<><MessageSquare size={16} className="inline mr-2"/> Envoyer l'invitation</>)}
                 </Button>
               </div>
+            </div>
             </div>
 
             <div id="invitation-modal-description" className="sr-only">

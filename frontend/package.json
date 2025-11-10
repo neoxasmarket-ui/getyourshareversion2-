@@ -19,7 +19,8 @@
     "react-helmet-async": "^2.0.5",
     "react-router-dom": "^6.20.0",
     "react-scripts": "5.0.1",
-    "recharts": "^2.10.3"
+    "recharts": "^2.10.3",
+    "web-vitals": "^5.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
