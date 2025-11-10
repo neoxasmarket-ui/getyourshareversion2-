@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
@@ -8,6 +8,7 @@ import PublicLayout from './components/layout/PublicLayout';
 import ChatbotWidget from './components/bot/ChatbotWidget';
 import WhatsAppFloatingButton from './components/social/WhatsAppFloatingButton';
 import LoadingFallback from './components/LoadingFallback';
+import performanceUtils from './utils/performance';
 import './App.css';
 
 // ============================================================================
@@ -183,6 +184,23 @@ const RoleProtectedRoute = ({ children, allowedRoles = [] }) => {
 };
 
 function App() {
+  // Initialize performance optimizations on mount
+  useEffect(() => {
+    // Initialize all performance optimizations
+    performanceUtils.init();
+
+    // Preload critical resources
+    performanceUtils.preload();
+
+    // Log performance budget
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        const budget = performanceUtils.checkBudget();
+        console.log('📊 Performance Budget:', budget);
+      }, 2000);
+    });
+  }, []);
+
   return (
     <AuthProvider>
       <ToastProvider>

@@ -1,0 +1,28 @@
+# Requirements pour le système d'optimisation d'images
+# Installation: pip install -r requirements-image-optimization.txt
+
+# Core image processing
+Pillow>=10.0.0
+
+# AVIF support (format moderne)
+pillow-heif>=0.13.0
+
+# Numpy pour calculs avancés
+numpy>=1.24.0
+
+# Suppression de fond (optionnel mais recommandé)
+# Note: rembg nécessite aussi torch/onnxruntime
+rembg>=2.0.50
+
+# Alternative légère pour rembg (si problèmes avec torch)
+# backgroundremover>=0.2.0
+
+# Pour blurhash complet (optionnel)
+# blurhash-python>=1.2.2
+
+# Pour détection de visages avancée (optionnel)
+# face-recognition>=1.3.0
+# opencv-python>=4.8.0
+
+# Pour traitement parallèle (améliore performances)
+# concurrent-futures>=3.1.1  # Inclus dans Python 3.2+

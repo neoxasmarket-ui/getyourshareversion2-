@@ -10,3 +10,16 @@ export { useForm, validators } from './useForm';
 export { useLocalStorage } from './useLocalStorage';
 export { useDebounce } from './useDebounce';
 export { useNotification } from './useNotification';
+export {
+  useInView,
+  useHover,
+  useSpring,
+  useGesture,
+  useAnimationFrame,
+  usePrefersReducedMotion,
+  useScrollAnimation,
+  useElementSize,
+  useTransitionAnimation,
+  useDebounceAnimation,
+  useMountAnimation,
+} from './useAnimations';

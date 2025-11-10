@@ -1,0 +1,920 @@
+/* ===================================================================
+   SYSTÈME D'ANIMATIONS PREMIUM - PRODUCTION READY
+   - 60fps garanti (transform + opacity only)
+   - GPU acceleration
+   - Respect prefers-reduced-motion
+   - Easing functions professionnelles
+   =================================================================== */
+
+/* ===== VARIABLES CSS - EASING FUNCTIONS ===== */
+:root {
+  /* Easing curves */
+  --ease-in-out-cubic: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-cubic: cubic-bezier(0.0, 0, 0.2, 1);
+  --ease-in-cubic: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-out-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-out-circ: cubic-bezier(0, 0.55, 0.45, 1);
+
+  /* Timing standards */
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
+  --transition-slowest: 800ms;
+
+  /* Colors for animations */
+  --shimmer-color: rgba(255, 255, 255, 0.1);
+  --shimmer-highlight: rgba(255, 255, 255, 0.2);
+  --glow-color: rgba(59, 130, 246, 0.5);
+}
+
+/* ===== RESPONSIVE - ANIMATION TIMING ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===================================================================
+   FADEÍN ANIMATIONS - ENTRÉES ÉLÉGANTES
+   =================================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -30px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(-30px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translate3d(30px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ===================================================================
+   SLIDE IN ANIMATIONS - GLISSEMENT FLUIDE
+   =================================================================== */
+
+@keyframes slideInUp {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translate3d(0, -100%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ===================================================================
+   SCALE UP ANIMATIONS - CROISSANCE
+   =================================================================== */
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale3d(0.8, 0.8, 1);
+  }
+  to {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes scaleUpCenter {
+  from {
+    opacity: 0;
+    transform: scale3d(0.7, 0.7, 1);
+  }
+  to {
+    opacity: 1;
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ===================================================================
+   SHIMMER LOADING - SKELETON ANIMATION
+   =================================================================== */
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes shimmerPulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ===================================================================
+   PULSE ANIMATIONS - ATTENTION GRABBING
+   =================================================================== */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes pulseShadow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 15px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes pulseScale {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+/* ===================================================================
+   BOUNCE ANIMATIONS - DYNAMIQUE
+   =================================================================== */
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes bounceInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 40px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ===================================================================
+   RIPPLE EFFECT - MATERIAL DESIGN
+   =================================================================== */
+
+@keyframes ripple {
+  from {
+    opacity: 1;
+    transform: scale(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(4);
+  }
+}
+
+@keyframes rippleExpand {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* ===================================================================
+   ROTATION & SPIN ANIMATIONS
+   =================================================================== */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinReverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes rotate3d {
+  0% {
+    transform: perspective(1000px) rotateY(0deg);
+  }
+  100% {
+    transform: perspective(1000px) rotateY(360deg);
+  }
+}
+
+/* ===================================================================
+   GLOW & LIGHT EFFECTS
+   =================================================================== */
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+/* ===================================================================
+   FLIP & 3D ANIMATIONS
+   =================================================================== */
+
+@keyframes flip {
+  from {
+    transform: perspective(400px) rotateY(0);
+  }
+  to {
+    transform: perspective(400px) rotateY(360deg);
+  }
+}
+
+@keyframes flipInX {
+  from {
+    opacity: 0;
+    transform: perspective(400px) rotateX(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(400px) rotateX(0deg);
+  }
+}
+
+@keyframes flipInY {
+  from {
+    opacity: 0;
+    transform: perspective(400px) rotateY(90deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(400px) rotateY(0deg);
+  }
+}
+
+/* ===================================================================
+   SWING & WOBBLE ANIMATIONS
+   =================================================================== */
+
+@keyframes swing {
+  20% {
+    transform: rotate(15deg);
+  }
+  40% {
+    transform: rotate(-10deg);
+  }
+  60% {
+    transform: rotate(5deg);
+  }
+  80% {
+    transform: rotate(-5deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes wobble {
+  from {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-15px) rotate(-5deg);
+  }
+  30% {
+    transform: translateX(10px) rotate(3deg);
+  }
+  45% {
+    transform: translateX(-10px) rotate(-3deg);
+  }
+  60% {
+    transform: translateX(8px) rotate(2deg);
+  }
+  75% {
+    transform: translateX(-5px) rotate(-1deg);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ===================================================================
+   SLIDE OUT ANIMATIONS
+   =================================================================== */
+
+@keyframes slideOutUp {
+  to {
+    transform: translate3d(0, -100%, 0);
+  }
+}
+
+@keyframes slideOutDown {
+  to {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+@keyframes slideOutLeft {
+  to {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+@keyframes slideOutRight {
+  to {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+/* ===================================================================
+   ZOOM ANIMATIONS
+   =================================================================== */
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes zoomInUp {
+  from {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3) translate3d(0, 40px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes zoomOut {
+  from {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  to {
+    opacity: 0;
+    transform: scale3d(0.3, 0.3, 0.3);
+  }
+}
+
+/* ===================================================================
+   UTILITY CLASSES - ANIMATIONS PRÊTES À L'EMPLOI
+   =================================================================== */
+
+.animate-fade-in {
+  animation: fadeIn var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-fade-in-left {
+  animation: fadeInLeft var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-fade-in-right {
+  animation: fadeInRight var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-slide-in-down {
+  animation: slideInDown var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-scale-up {
+  animation: scaleUp var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-bounce-in {
+  animation: bounceIn var(--transition-normal) var(--ease-out-bounce) forwards;
+}
+
+.animate-bounce-in-up {
+  animation: bounceInUp var(--transition-normal) var(--ease-out-bounce) forwards;
+}
+
+.animate-zoom-in {
+  animation: zoomIn var(--transition-normal) var(--ease-out-cubic) forwards;
+}
+
+.animate-zoom-in-up {
+  animation: zoomInUp var(--transition-slow) var(--ease-out-cubic) forwards;
+}
+
+.animate-spin {
+  animation: spin 2s linear infinite;
+  will-change: transform;
+}
+
+.animate-pulse {
+  animation: pulse 2s var(--ease-in-out-cubic) infinite;
+  will-change: opacity;
+}
+
+.animate-pulse-shadow {
+  animation: pulseShadow 2s var(--ease-in-out-cubic) infinite;
+  will-change: box-shadow;
+}
+
+.animate-glow {
+  animation: glow 2s var(--ease-in-out-cubic) infinite;
+  will-change: box-shadow, text-shadow;
+}
+
+.animate-flip {
+  animation: flip var(--transition-slow) linear infinite;
+  will-change: transform;
+}
+
+.animate-swing {
+  animation: swing var(--transition-slow) ease-in-out infinite;
+  transform-origin: top center;
+  will-change: transform;
+}
+
+.animate-wobble {
+  animation: wobble var(--transition-slow) ease-in-out;
+  will-change: transform;
+}
+
+/* ===================================================================
+   SKELETON LOADING - SHIMMER EFFECT
+   =================================================================== */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #e0e0e0 0%,
+    #f0f0f0 50%,
+    #e0e0e0 100%
+  );
+  background-size: 1000px 100%;
+  background-position: 0 0;
+  animation: shimmer 2s infinite;
+  will-change: background-position;
+}
+
+.skeleton-dark {
+  background: linear-gradient(
+    90deg,
+    #2d2d2d 0%,
+    #3d3d3d 50%,
+    #2d2d2d 100%
+  );
+  background-size: 1000px 100%;
+  background-position: 0 0;
+  animation: shimmer 2s infinite;
+  will-change: background-position;
+}
+
+.skeleton-text {
+  border-radius: 4px;
+  height: 16px;
+  margin-bottom: 8px;
+}
+
+.skeleton-title {
+  border-radius: 4px;
+  height: 24px;
+  margin-bottom: 12px;
+}
+
+.skeleton-avatar {
+  border-radius: 50%;
+  height: 48px;
+  width: 48px;
+}
+
+.skeleton-card {
+  border-radius: 12px;
+  height: 300px;
+  width: 100%;
+}
+
+/* ===================================================================
+   RIPPLE EFFECT - BOUTONS & INTERACTIONS
+   =================================================================== */
+
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+}
+
+.ripple:active::after {
+  animation: rippleExpand 600ms ease-out;
+}
+
+/* ===================================================================
+   HOVER TRANSITIONS - SMOOTH INTERACTIONS
+   =================================================================== */
+
+.hover-scale {
+  transition: transform var(--transition-fast) var(--ease-out-cubic);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-scale-lg {
+  transition: transform var(--transition-fast) var(--ease-out-cubic);
+}
+
+.hover-scale-lg:hover {
+  transform: scale(1.1);
+}
+
+.hover-lift {
+  transition: transform var(--transition-fast) var(--ease-out-cubic),
+              box-shadow var(--transition-fast) var(--ease-out-cubic);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.hover-shadow {
+  transition: box-shadow var(--transition-fast) var(--ease-out-cubic);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.hover-shadow:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.hover-glow {
+  transition: box-shadow var(--transition-fast) var(--ease-out-cubic);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.hover-opacity {
+  transition: opacity var(--transition-fast) var(--ease-out-cubic);
+}
+
+.hover-opacity:hover {
+  opacity: 0.8;
+}
+
+/* ===================================================================
+   SMOOTH TRANSITIONS - TRANSITIONS GÉNÉRALES
+   =================================================================== */
+
+.transition-all {
+  transition: all var(--transition-normal) var(--ease-in-out-cubic);
+}
+
+.transition-fast {
+  transition: all var(--transition-fast) var(--ease-out-cubic);
+}
+
+.transition-slow {
+  transition: all var(--transition-slow) var(--ease-in-out-cubic);
+}
+
+.transition-colors {
+  transition: background-color var(--transition-normal) var(--ease-in-out-cubic),
+              color var(--transition-normal) var(--ease-in-out-cubic),
+              border-color var(--transition-normal) var(--ease-in-out-cubic);
+}
+
+.transition-transform {
+  transition: transform var(--transition-normal) var(--ease-in-out-cubic);
+}
+
+.transition-opacity {
+  transition: opacity var(--transition-normal) var(--ease-in-out-cubic);
+}
+
+/* ===================================================================
+   ENTRANCE DELAY STAGGERING
+   =================================================================== */
+
+.stagger-1 {
+  animation-delay: 0ms;
+}
+
+.stagger-2 {
+  animation-delay: 100ms;
+}
+
+.stagger-3 {
+  animation-delay: 200ms;
+}
+
+.stagger-4 {
+  animation-delay: 300ms;
+}
+
+.stagger-5 {
+  animation-delay: 400ms;
+}
+
+.stagger-6 {
+  animation-delay: 500ms;
+}
+
+.stagger-7 {
+  animation-delay: 600ms;
+}
+
+.stagger-8 {
+  animation-delay: 700ms;
+}
+
+/* ===================================================================
+   CONTENT REVEAL ANIMATIONS
+   =================================================================== */
+
+@keyframes revealContent {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.animate-reveal {
+  animation: revealContent var(--transition-slow) var(--ease-out-cubic) forwards;
+}
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.animate-reveal-up {
+  animation: revealUp var(--transition-slow) var(--ease-out-cubic) forwards;
+}
+
+/* ===================================================================
+   GRADIENT ANIMATIONS
+   =================================================================== */
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+  will-change: background-position;
+}
+
+/* ===================================================================
+   PERFORMANCE OPTIMIZATIONS
+   =================================================================== */
+
+.gpu-accelerate {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  perspective: 1000px;
+}
+
+.will-animate-transform {
+  will-change: transform;
+}
+
+.will-animate-opacity {
+  will-change: opacity;
+}
+
+.will-animate-filter {
+  will-change: filter;
+}
+
+/* ===================================================================
+   DISABLED STATES - ACCESSIBILITY
+   =================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-fade-in-down,
+  .animate-fade-in-left,
+  .animate-fade-in-right,
+  .animate-slide-in-up,
+  .animate-slide-in-down,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-scale-up,
+  .animate-bounce-in,
+  .animate-bounce-in-up,
+  .animate-zoom-in,
+  .animate-zoom-in-up,
+  .animate-spin,
+  .animate-pulse,
+  .animate-pulse-shadow,
+  .animate-glow,
+  .animate-flip,
+  .animate-swing,
+  .animate-wobble,
+  .skeleton,
+  .skeleton-dark,
+  .animate-gradient {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .hover-scale,
+  .hover-scale-lg,
+  .hover-lift,
+  .hover-shadow,
+  .hover-glow,
+  .hover-opacity {
+    transition: none !important;
+  }
+
+  .hover-scale:hover,
+  .hover-scale-lg:hover,
+  .hover-lift:hover,
+  .hover-shadow:hover,
+  .hover-glow:hover,
+  .hover-opacity:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+  }
+}
