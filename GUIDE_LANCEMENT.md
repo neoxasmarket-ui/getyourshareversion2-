@@ -261,3 +261,43 @@ En cas de problème:
 **Version**: 1.0.0
 **Date**: 2025-11-10
 **Status**: ✅ Stable - Prêt pour développement
+
+
+---
+
+## 🔑 Identifiants de Connexion Rapide (Tests)
+
+### Comptes principaux (mot de passe unique : `Test123!`)
+
+#### 👨‍💼 Admin
+| Email                  | Mot de passe | 2FA        | Abonnement   |
+|------------------------|--------------|------------|--------------|
+| admin@getyourshare.com | Test123!     | Désactivé  | ENTERPRISE   |
+
+#### 🏪 Merchants
+| Entreprise         | Email                        | Mot de passe | Abonnement   |
+|--------------------|------------------------------|--------------|--------------|
+| Boutique Maroc     | boutique.maroc@getyourshare.com   | Test123!     | STARTER      |
+| Luxury Crafts      | luxury.crafts@getyourshare.com    | Test123!     | PRO          |
+| ElectroMaroc       | electro.maroc@getyourshare.com   | Test123!     | ENTERPRISE   |
+
+#### 🎯 Influenceurs
+| Nom                | Email                        | Mot de passe | Abonnement   |
+|--------------------|------------------------------|--------------|--------------|
+| Hassan Oudrhiri    | hassan.oudrhiri@getyourshare.com | Test123!     | STARTER      |
+| Sarah Benali       | sarah.benali@getyourshare.com    | Test123!     | PRO          |
+| Karim Benjelloun   | karim.benjelloun@getyourshare.com| Test123!     | PRO          |
+
+#### 💼 Commercial
+| Nom            | Email                        | Mot de passe | Rôle  |
+|----------------|------------------------------|--------------|-------|
+| Sofia Chakir   | sofia.chakir@getyourshare.com| Test123!     | ADMIN |
+
+### 📋 Anciens Comptes (toujours actifs)
+| Rôle         | Email                      | Mot de passe   | 2FA    |
+|--------------|----------------------------|----------------|--------|
+| Admin        | admin@shareyoursales.com   | admin123       | 123456 |
+| Merchant     | contact@techstyle.fr       | merchant123    | 123456 |
+| Influencer   | emma.style@instagram.com   | influencer123  | 123456 |
+
+> **Note :** Tous les nouveaux comptes de test ont la 2FA désactivée pour faciliter les tests. Tous les comptes de test ont des abonnements actifs.

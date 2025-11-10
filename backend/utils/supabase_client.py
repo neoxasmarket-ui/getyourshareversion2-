@@ -27,15 +27,15 @@ def init_supabase() -> Optional[Client]:
     supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_KEY")
     
     if not supabase_url or not supabase_key:
-        print("⚠️ SUPABASE_URL ou SUPABASE_KEY non configurés")
+        print("WARNING: SUPABASE_URL ou SUPABASE_KEY non configures")
         return None
     
     try:
         _supabase_client = create_client(supabase_url, supabase_key)
-        print("✅ Client Supabase initialisé")
+        print("OK: Client Supabase initialise")
         return _supabase_client
     except Exception as e:
-        print(f"❌ Erreur initialisation Supabase: {e}")
+        print(f"ERROR: Erreur initialisation Supabase: {e}")
         return None
 
 

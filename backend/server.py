@@ -3051,56 +3051,10 @@ async def send_payment_reminders(payload: dict = Depends(verify_token)):
 # SYSTÈME LEADS - MARKETPLACE SERVICES
 # ============================================
 # Import des endpoints LEADS
-from endpoints.leads_endpoints import (
-    # Gestion des leads
-    create_lead,
-    validate_lead,
-    get_lead,
-    get_campaign_leads,
-    get_my_leads,
+from endpoints.leads_endpoints import add_leads_endpoints
 
-    # Gestion des dépôts
-    create_deposit,
-    recharge_deposit,
-    get_my_deposit_balance,
-    get_deposit_history,
-    get_all_my_deposits,
-    get_deposit_stats,
-
-    # Statistiques
-    get_campaign_lead_stats,
-    get_my_influencer_stats,
-
-    # Accords
-    create_agreement,
-    get_my_agreements
-)
-
-# Endpoints LEADS - Création et validation
-app.add_api_route("/api/leads/create", create_lead, methods=["POST"], tags=["Leads"])
-app.add_api_route("/api/leads/{lead_id}/validate", validate_lead, methods=["PUT"], tags=["Leads"])
-# app.add_api_route("/api/leads/{lead_id}/reject", reject_lead, methods=["PUT"], tags=["Leads"])  # Function not implemented
-app.add_api_route("/api/leads/{lead_id}", get_lead, methods=["GET"], tags=["Leads"])
-app.add_api_route("/api/leads/campaign/{campaign_id}", get_campaign_leads, methods=["GET"], tags=["Leads"])
-# app.add_api_route("/api/leads/influencer/{influencer_id}", get_influencer_leads, methods=["GET"], tags=["Leads"])  # Function not implemented
-app.add_api_route("/api/leads/my-leads", get_my_leads, methods=["GET"], tags=["Leads"])
-
-# Endpoints DÉPÔTS - Gestion financière
-app.add_api_route("/api/leads/deposits/create", create_deposit, methods=["POST"], tags=["Deposits"])
-app.add_api_route("/api/leads/deposits/recharge", recharge_deposit, methods=["POST"], tags=["Deposits"])
-app.add_api_route("/api/leads/deposits/balance", get_my_deposit_balance, methods=["GET"], tags=["Deposits"])
-app.add_api_route("/api/leads/deposits/history", get_deposit_history, methods=["GET"], tags=["Deposits"])
-app.add_api_route("/api/leads/deposits/all", get_all_my_deposits, methods=["GET"], tags=["Deposits"])
-app.add_api_route("/api/leads/deposits/stats", get_deposit_stats, methods=["GET"], tags=["Deposits"])
-
-# Endpoints STATISTIQUES
-app.add_api_route("/api/leads/stats/campaign/{campaign_id}", get_campaign_lead_stats, methods=["GET"], tags=["Lead Stats"])
-app.add_api_route("/api/leads/stats/influencer", get_my_influencer_stats, methods=["GET"], tags=["Lead Stats"])
-
-# Endpoints ACCORDS PARTENARIATS
-app.add_api_route("/api/leads/agreements/create", create_agreement, methods=["POST"], tags=["Agreements"])
-app.add_api_route("/api/leads/agreements/my-agreements", get_my_agreements, methods=["GET"], tags=["Agreements"])
-# app.add_api_route("/api/leads/agreements/{agreement_id}/sign", sign_agreement, methods=["PUT"], tags=["Agreements"])  # Function not implemented
+# Endpoints LEADS - Intégration via router
+add_leads_endpoints(app, verify_token)
 
 if __name__ == "__main__":
     import uvicorn
@@ -3128,7 +3082,7 @@ if __name__ == "__main__":
     print("   ├─ 📧 Alertes multi-niveau: 50%, 80%, 90%, 100%")
     print("   ├─ 🧹 Nettoyage leads: 23:00 quotidien")
     print("   └─ 📊 Rapports: 09:00 quotidien")
-    print("🌐 API disponible sur: http://localhost:8001")
-    print("📖 Documentation: http://localhost:8001/docs")
+    print("🌐 API disponible sur: http://localhost:8000")
+    print("📖 Documentation: http://localhost:8000/docs")
     print("="*60 + "\n")
-    uvicorn.run(app, host="127.0.0.1", port=8001)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
