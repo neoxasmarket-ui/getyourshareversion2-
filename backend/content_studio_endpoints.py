@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from .services.content_studio_service import (
+from services.content_studio_service import (
     content_studio_service,
     ContentType,
     SocialPlatform,

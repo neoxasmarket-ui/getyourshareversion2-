@@ -4,7 +4,7 @@
  * Avec RTL (Right-to-Left) pour arabe
  */
 
-import { logger } from './utils/logger';
+import { logger } from '../utils/logger';
 import { createContext, useContext, useState, useEffect } from 'react';
 
 // ============================================
