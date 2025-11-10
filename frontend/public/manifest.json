@@ -1,7 +1,7 @@
 {
-  "name": "ShareYourSales - Plateforme d'Affiliation Marocaine",
-  "short_name": "ShareYourSales",
-  "description": "Plateforme SaaS d'affiliation entre influenceurs et marchands au Maroc. Générez des revenus avec vos réseaux sociaux !",
+  "name": "GetYourShare - Marketing d'Influence SaaS",
+  "short_name": "GetYourShare",
+  "description": "Plateforme SaaS complète pour marchands, influenceurs et commerciaux avec gamification, matching IA et analytics avancés",
   "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -54,10 +54,31 @@
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
-      "name": "AI Content",
-      "short_name": "IA Contenu",
-      "description": "Générer du contenu avec l'IA",
-      "url": "/ai-content-generator?source=shortcut",
+      "name": "Leads HOT",
+      "short_name": "Leads",
+      "description": "Voir les leads chauds (commerciaux)",
+      "url": "/sales/leads?source=shortcut",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Matching",
+      "short_name": "Matching",
+      "description": "Trouver des influenceurs (Tinder style)",
+      "url": "/influencer-matching?source=shortcut",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Analytics Pro",
+      "short_name": "Analytics",
+      "description": "Analytics avancés avec IA",
+      "url": "/analytics-pro?source=shortcut",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Gamification",
+      "short_name": "Gamif",
+      "description": "Voir mon niveau et mes badges",
+      "url": "/gamification?source=shortcut",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     }
   ]

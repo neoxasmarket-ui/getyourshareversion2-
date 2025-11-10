@@ -1,11 +1,14 @@
 /* eslint-disable no-restricted-globals */
 
 /**
- * Service Worker pour ShareYourSales PWA
- * Permet le fonctionnement offline et les performances optimisées
+ * Service Worker pour GetYourShare PWA
+ * Features: Offline mode, Background Sync (Leads, Activities, Swipes), Push Notifications
+ * Support: Marchands, Influenceurs, Commerciaux
  */
 
-const CACHE_NAME = 'shareyoursales-v1.0.0';
+const CACHE_NAME = 'getyourshare-v2.0.0';
+const API_CACHE = 'getyourshare-api-v2';
+const RUNTIME_CACHE = 'getyourshare-runtime-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -101,7 +104,14 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('sync', (event) => {
   console.log('[Service Worker] Background Sync:', event.tag);
 
-  if (event.tag === 'sync-payouts') {
+  // Sales Rep: Sync leads & activities
+  if (event.tag === 'sync-leads') {
+    event.waitUntil(syncPendingLeads());
+  } else if (event.tag === 'sync-activities') {
+    event.waitUntil(syncPendingActivities());
+  } else if (event.tag === 'sync-swipes') {
+    event.waitUntil(syncPendingSwipes());
+  } else if (event.tag === 'sync-payouts') {
     event.waitUntil(syncPendingPayouts());
   }
 });
@@ -219,16 +229,169 @@ async function syncPendingPayouts() {
   }
 }
 
+// Helper: Sync pending leads (Sales Reps)
+async function syncPendingLeads() {
+  try {
+    const db = await openIndexedDB();
+    const pendingLeads = await getAll(db, 'pendingLeads');
+
+    console.log(`[Service Worker] Syncing ${pendingLeads.length} leads`);
+
+    for (const item of pendingLeads) {
+      const response = await fetch('/api/sales/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${item.token}`
+        },
+        body: JSON.stringify(item.data)
+      });
+
+      if (response.ok) {
+        await deleteFromStore(db, 'pendingLeads', item.id);
+      }
+    }
+
+    console.log('[Service Worker] Leads synced successfully');
+  } catch (error) {
+    console.error('[Service Worker] Lead sync failed:', error);
+    throw error;
+  }
+}
+
+// Helper: Sync pending activities (Sales Reps)
+async function syncPendingActivities() {
+  try {
+    const db = await openIndexedDB();
+    const pendingActivities = await getAll(db, 'pendingActivities');
+
+    console.log(`[Service Worker] Syncing ${pendingActivities.length} activities`);
+
+    for (const item of pendingActivities) {
+      const response = await fetch('/api/sales/activities', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${item.token}`
+        },
+        body: JSON.stringify(item.data)
+      });
+
+      if (response.ok) {
+        await deleteFromStore(db, 'pendingActivities', item.id);
+      }
+    }
+
+    console.log('[Service Worker] Activities synced successfully');
+  } catch (error) {
+    console.error('[Service Worker] Activity sync failed:', error);
+    throw error;
+  }
+}
+
+// Helper: Sync pending swipes (Influencer Matching)
+async function syncPendingSwipes() {
+  try {
+    const db = await openIndexedDB();
+    const pendingSwipes = await getAll(db, 'pendingSwipes');
+
+    console.log(`[Service Worker] Syncing ${pendingSwipes.length} swipes`);
+
+    for (const item of pendingSwipes) {
+      const endpoint = item.data.direction === 'right'
+        ? '/api/matching/swipe-right'
+        : '/api/matching/swipe-left';
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${item.token}`
+        },
+        body: JSON.stringify(item.data)
+      });
+
+      if (response.ok) {
+        await deleteFromStore(db, 'pendingSwipes', item.id);
+      }
+    }
+
+    console.log('[Service Worker] Swipes synced successfully');
+  } catch (error) {
+    console.error('[Service Worker] Swipe sync failed:', error);
+    throw error;
+  }
+}
+
 // Helper: Get pending payouts from IndexedDB
 async function getPendingPayouts() {
-  // TODO: Implémenter avec IndexedDB
-  return [];
+  try {
+    const db = await openIndexedDB();
+    return await getAll(db, 'pendingPayouts');
+  } catch (error) {
+    console.error('[Service Worker] Error getting payouts:', error);
+    return [];
+  }
 }
 
 // Helper: Remove payout from IndexedDB
 async function removePendingPayout(id) {
-  // TODO: Implémenter avec IndexedDB
-  return Promise.resolve();
+  try {
+    const db = await openIndexedDB();
+    await deleteFromStore(db, 'pendingPayouts', id);
+  } catch (error) {
+    console.error('[Service Worker] Error removing payout:', error);
+  }
+}
+
+// IndexedDB Helpers
+function openIndexedDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('GetYourShareDB', 2);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      // Create object stores if they don't exist
+      if (!db.objectStoreNames.contains('pendingLeads')) {
+        db.createObjectStore('pendingLeads', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('pendingActivities')) {
+        db.createObjectStore('pendingActivities', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('pendingSwipes')) {
+        db.createObjectStore('pendingSwipes', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('pendingPayouts')) {
+        db.createObjectStore('pendingPayouts', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
+
+function getAll(db, storeName) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readonly');
+    const store = transaction.objectStore(storeName);
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function deleteFromStore(db, storeName, id) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
+    const request = store.delete(id);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
 }
 
 // Periodic Background Sync (si supporté)
