@@ -118,6 +118,25 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
+def hash_password(password: str) -> str:
+    """Hash un mot de passe avec bcrypt"""
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def update_user(user_id: str, updates: Dict[str, Any]) -> bool:
+    """Met à jour les informations d'un utilisateur"""
+    try:
+        # Ajouter updated_at automatiquement
+        updates["updated_at"] = datetime.now().isoformat()
+
+        # Exécuter la mise à jour
+        supabase.table("users").update(updates).eq("id", user_id).execute()
+        return True
+    except Exception as e:
+        print(f"Error updating user: {e}")
+        return False
+
+
 def update_user_last_login(user_id: str):
     """Met à jour la date de dernière connexion"""
     try:

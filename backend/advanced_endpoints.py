@@ -7,7 +7,35 @@ from fastapi import HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from datetime import datetime
-from advanced_helpers import generate_verification_token, send_verification_email
+
+# Imports depuis db_helpers
+from db_helpers import (
+    get_user_by_id,
+    get_merchant_by_user_id,
+    get_influencer_by_user_id,
+    get_product_by_id,
+)
+
+# Imports depuis advanced_helpers
+from advanced_helpers import (
+    generate_verification_token,
+    send_verification_email,
+    create_product,
+    update_product,
+    delete_product,
+    update_campaign,
+    delete_campaign,
+    assign_products_to_campaign,
+    create_invitation,
+    accept_invitation,
+    create_sale,
+    record_click,
+    create_payout_request,
+    approve_payout,
+    get_performance_report,
+    get_platform_settings,
+    update_platform_setting,
+)
 
 # ============================================
 # NOUVEAUX MODÈLES PYDANTIC
