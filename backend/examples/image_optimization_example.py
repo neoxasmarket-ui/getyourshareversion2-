@@ -4,8 +4,8 @@ Démontre toutes les fonctionnalités du ImageOptimizer
 """
 import asyncio
 from pathlib import Path
-from backend.services.image_optimizer import ImageOptimizer
-from backend.utils.logger import logger
+from services.image_optimizer import ImageOptimizer
+from utils.logger import logger
 
 
 async def example_basic_optimization():
@@ -249,7 +249,7 @@ async def example_cdn_ready_urls():
     """
     logger.info("=== Exemple 8: URLs CDN-ready ===")
 
-    from backend.utils.image_processing import get_safe_filename
+    from utils.image_processing import get_safe_filename
 
     optimizer = ImageOptimizer()
 

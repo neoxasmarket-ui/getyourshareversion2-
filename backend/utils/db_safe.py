@@ -3,7 +3,7 @@ Helpers sécurisés pour les requêtes Supabase
 Prévention des injections SQL et sanitisation des inputs
 
 Usage:
-    from backend.utils.db_safe import sanitize_like_pattern, safe_ilike, build_or_search
+    from utils.db_safe import sanitize_like_pattern, safe_ilike, build_or_search
 
     # Sanitiser un pattern ILIKE
     clean_search = sanitize_like_pattern(user_input)

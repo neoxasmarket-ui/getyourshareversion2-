@@ -11,7 +11,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class AIContentStudio:

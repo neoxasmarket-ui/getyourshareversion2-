@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import random
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class SalesRepresentativeService:

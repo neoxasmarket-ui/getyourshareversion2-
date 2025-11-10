@@ -6,8 +6,8 @@ import io
 from pathlib import Path
 from PIL import Image
 
-from backend.services.image_optimizer import ImageOptimizer
-from backend.utils.image_processing import (
+from services.image_optimizer import ImageOptimizer
+from utils.image_processing import (
     validate_image,
     calculate_optimal_quality,
     generate_blurhash,

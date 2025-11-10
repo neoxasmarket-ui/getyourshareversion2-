@@ -18,7 +18,7 @@ from datetime import datetime
 from supabase import create_client, Client
 import os
 from auth import get_current_user
-from backend.utils.db_safe import safe_ilike
+from utils.db_safe import safe_ilike
 
 router = APIRouter(prefix="/api/commercials", tags=["Commercials Directory"])
 

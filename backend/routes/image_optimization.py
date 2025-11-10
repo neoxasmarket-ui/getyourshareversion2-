@@ -7,9 +7,9 @@ from werkzeug.utils import secure_filename
 import io
 from typing import Optional
 
-from backend.services.image_optimizer import ImageOptimizer
-from backend.utils.image_processing import validate_image, ImageValidationError, get_safe_filename
-from backend.utils.logger import logger
+from services.image_optimizer import ImageOptimizer
+from utils.image_processing import validate_image, ImageValidationError, get_safe_filename
+from utils.logger import logger
 
 # Créer le blueprint
 image_bp = Blueprint('image_optimization', __name__, url_prefix='/api/images')

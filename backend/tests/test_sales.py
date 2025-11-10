@@ -15,7 +15,7 @@ from services.sales.service import SalesService
 
 def test_sales_service_init(mock_supabase):
     """Test initialisation du service"""
-    service = SalesService(mock_supabase)
+    service = SalesService()
     assert service.supabase == mock_supabase
 
 
@@ -30,7 +30,7 @@ def test_create_sale_success(mock_supabase, sample_sale_request, sample_sale):
     """Test création de vente réussie"""
     # Arrange
     mock_supabase.rpc.return_value.execute.return_value.data = sample_sale
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.create_sale(**sample_sale_request)
@@ -53,7 +53,7 @@ def test_create_sale_invalid_link(mock_supabase, sample_sale_request, mock_postg
     mock_supabase.rpc.return_value.execute.side_effect = Exception(
         f"PostgrestAPIError: {error.message}"
     )
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act & Assert
     with pytest.raises(ValueError, match="Invalid trackable link"):
@@ -65,7 +65,7 @@ def test_create_sale_invalid_link(mock_supabase, sample_sale_request, mock_postg
 def test_create_sale_negative_amount(mock_supabase, sample_sale_request):
     """Test création avec montant négatif"""
     # Arrange
-    service = SalesService(mock_supabase)
+    service = SalesService()
     sample_sale_request["amount"] = -10.0
 
     # Act & Assert
@@ -78,7 +78,7 @@ def test_create_sale_negative_amount(mock_supabase, sample_sale_request):
 def test_create_sale_missing_link_id(mock_supabase, sample_sale_request):
     """Test création sans link_id"""
     # Arrange
-    service = SalesService(mock_supabase)
+    service = SalesService()
     del sample_sale_request["link_id"]
 
     # Act & Assert
@@ -92,7 +92,7 @@ def test_create_sale_database_error(mock_supabase, sample_sale_request):
     """Test gestion erreur base de données"""
     # Arrange
     mock_supabase.rpc.return_value.execute.side_effect = Exception("Database connection error")
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act & Assert
     with pytest.raises(Exception, match="Database connection error"):
@@ -112,7 +112,7 @@ def test_get_sale_by_id_success(mock_supabase, sample_sale_id, sample_sale):
     mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
         sample_sale
     ]
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.get_sale_by_id(sample_sale_id)
@@ -130,7 +130,7 @@ def test_get_sale_by_id_not_found(mock_supabase, sample_sale_id):
     mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = (
         []
     )
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.get_sale_by_id(sample_sale_id)
@@ -144,7 +144,7 @@ def test_get_sale_by_id_not_found(mock_supabase, sample_sale_id):
 def test_get_sale_by_id_invalid_uuid(mock_supabase):
     """Test avec UUID invalide"""
     # Arrange
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act & Assert
     with pytest.raises(ValueError):
@@ -165,7 +165,7 @@ def test_get_sales_by_influencer_success(mock_supabase, sample_influencer_id, sa
     mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = (
         sales_list
     )
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.get_sales_by_influencer(sample_influencer_id, limit=10, offset=0)
@@ -185,7 +185,7 @@ def test_get_sales_by_influencer_with_status_filter(
     mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.order.return_value.execute.return_value.data = [
         sample_sale
     ]
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.get_sales_by_influencer(sample_influencer_id, status="completed")
@@ -202,7 +202,7 @@ def test_get_sales_by_influencer_empty_result(mock_supabase, sample_influencer_i
     mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = (
         []
     )
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.get_sales_by_influencer(sample_influencer_id)
@@ -225,7 +225,7 @@ def test_get_sales_by_merchant_success(mock_supabase, sample_merchant_id, sample
     mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = (
         sales_list
     )
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.get_sales_by_merchant(sample_merchant_id)
@@ -243,7 +243,7 @@ def test_get_sales_by_merchant_pagination(mock_supabase, sample_merchant_id, sam
         mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value
     )
     mock_query.limit.return_value.offset.return_value.execute.return_value.data = [sample_sale]
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.get_sales_by_merchant(sample_merchant_id, limit=5, offset=10)
@@ -267,7 +267,7 @@ def test_update_sale_status_success(mock_supabase, sample_sale_id, sample_sale):
     mock_supabase.table.return_value.update.return_value.eq.return_value.execute.return_value.data = [
         updated_sale
     ]
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.update_sale_status(sample_sale_id, "refunded")
@@ -282,7 +282,7 @@ def test_update_sale_status_success(mock_supabase, sample_sale_id, sample_sale):
 def test_update_sale_status_invalid_status(mock_supabase, sample_sale_id):
     """Test statut invalide"""
     # Arrange
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act & Assert
     with pytest.raises(ValueError, match="Invalid status"):
@@ -297,7 +297,7 @@ def test_update_sale_status_not_found(mock_supabase, sample_sale_id):
     mock_supabase.table.return_value.update.return_value.eq.return_value.execute.return_value.data = (
         []
     )
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.update_sale_status(sample_sale_id, "refunded")
@@ -317,7 +317,7 @@ def test_create_sale_with_all_optional_params(mock_supabase, sample_sale_request
     """Test création avec tous les paramètres optionnels"""
     # Arrange
     mock_supabase.rpc.return_value.execute.return_value.data = sample_sale
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     full_request = {
         **sample_sale_request,
@@ -342,7 +342,7 @@ def test_get_sales_by_influencer_large_dataset(mock_supabase, sample_influencer_
     mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = (
         large_dataset
     )
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act
     result = service.get_sales_by_influencer(sample_influencer_id, limit=100)
@@ -357,7 +357,7 @@ def test_concurrent_sale_creation(mock_supabase, sample_sale_request, sample_sal
     """Test création simultanée de ventes (simulation)"""
     # Arrange
     mock_supabase.rpc.return_value.execute.return_value.data = sample_sale
-    service = SalesService(mock_supabase)
+    service = SalesService()
 
     # Act - Simuler 3 créations concurrentes
     results = []

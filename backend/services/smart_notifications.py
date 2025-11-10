@@ -11,7 +11,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import requests
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class NotificationChannel(Enum):

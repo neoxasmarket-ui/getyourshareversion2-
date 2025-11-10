@@ -19,7 +19,7 @@ import structlog
 
 from auth import get_current_user, get_current_admin
 from supabase_client import supabase
-from backend.utils.db_safe import build_or_search
+from utils.db_safe import build_or_search
 
 router = APIRouter(prefix="/api/contact", tags=["Contact"])
 logger = structlog.get_logger()

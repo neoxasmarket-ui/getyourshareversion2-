@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from decimal import Decimal
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class UserType(str, Enum):

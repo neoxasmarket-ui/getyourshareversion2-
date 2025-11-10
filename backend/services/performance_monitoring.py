@@ -11,8 +11,8 @@ from datetime import datetime, timedelta
 from enum import Enum
 import statistics
 
-from backend.utils.logger import logger
-from backend.services.advanced_caching import cache_service
+from utils.logger import logger
+from services.advanced_caching import cache_service
 
 
 class MetricType(str, Enum):

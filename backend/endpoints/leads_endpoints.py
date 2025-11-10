@@ -9,10 +9,10 @@ from decimal import Decimal
 from pydantic import BaseModel, Field
 from datetime import datetime
 
-from backend.utils.supabase_client import get_supabase_client
-from backend.middleware.auth import verify_token, require_role
-from backend.services.lead_service import LeadService
-from backend.services.deposit_service import DepositService
+from utils.supabase_client import get_supabase_client
+from middleware.auth import verify_token, require_role
+from services.lead_service import LeadService
+from services.deposit_service import DepositService
 
 
 # ============================================

@@ -11,8 +11,8 @@ from datetime import datetime
 from PIL import Image, ImageFilter, ImageOps, ExifTags
 import pillow_heif  # Pour support AVIF
 
-from backend.utils.logger import logger
-from backend.utils.image_processing import (
+from utils.logger import logger
+from utils.image_processing import (
     validate_image,
     calculate_optimal_quality,
     generate_blurhash,

@@ -18,7 +18,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from backend.services.ai_assistant_multilingual_service import (
+from services.ai_assistant_multilingual_service import (
     AIAssistantMultilingualService,
     Language,
     SentimentType,

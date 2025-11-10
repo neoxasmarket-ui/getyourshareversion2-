@@ -5,7 +5,7 @@ Endpoints pour la recherche avancée d'influenceurs
 from fastapi import HTTPException, Depends, Query
 from typing import Optional, List
 from db_helpers import get_supabase_client, get_user_by_id
-from backend.utils.db_safe import safe_ilike
+from utils.db_safe import safe_ilike
 
 
 def add_influencer_search_endpoints(app, verify_token):

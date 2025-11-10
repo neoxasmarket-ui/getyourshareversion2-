@@ -10,7 +10,7 @@ from collections import defaultdict
 import redis
 from fastapi import WebSocket, WebSocketDisconnect
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class RealtimeAnalytics:

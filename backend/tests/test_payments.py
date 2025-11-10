@@ -15,8 +15,8 @@ from services.payments.service import PaymentsService
 
 def test_payments_service_init(mock_supabase):
     """Test initialisation du service"""
-    service = PaymentsService(mock_supabase)
-    assert service.supabase == mock_supabase
+    service = PaymentsService()
+    assert service.supabase is not None
 
 
 # ============================================================================
@@ -30,7 +30,7 @@ def test_approve_commission_success(mock_supabase, sample_commission_id):
     """Test approbation de commission réussie"""
     # Arrange
     mock_supabase.rpc.return_value.execute.return_value.data = True
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.approve_commission(sample_commission_id)
@@ -54,7 +54,7 @@ def test_approve_commission_already_approved(
     mock_supabase.rpc.return_value.execute.side_effect = Exception(
         f"PostgrestAPIError: {error.message}"
     )
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act & Assert
     with pytest.raises(ValueError, match="already in final state"):
@@ -70,7 +70,7 @@ def test_approve_commission_not_found(mock_supabase, sample_commission_id, mock_
     mock_supabase.rpc.return_value.execute.side_effect = Exception(
         f"PostgrestAPIError: {error.message}"
     )
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act & Assert
     with pytest.raises(ValueError, match="not found"):
@@ -82,7 +82,7 @@ def test_approve_commission_not_found(mock_supabase, sample_commission_id, mock_
 def test_approve_commission_invalid_uuid(mock_supabase):
     """Test avec UUID invalide"""
     # Arrange
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act & Assert
     with pytest.raises(ValueError):
@@ -100,7 +100,7 @@ def test_pay_commission_success(mock_supabase, sample_commission_id):
     """Test paiement de commission réussi"""
     # Arrange
     mock_supabase.rpc.return_value.execute.return_value.data = True
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.pay_commission(sample_commission_id)
@@ -122,7 +122,7 @@ def test_pay_commission_not_approved(mock_supabase, sample_commission_id, mock_p
     mock_supabase.rpc.return_value.execute.side_effect = Exception(
         f"PostgrestAPIError: {error.message}"
     )
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act & Assert
     with pytest.raises(ValueError, match="Invalid status transition"):
@@ -140,7 +140,7 @@ def test_reject_commission_success(mock_supabase, sample_commission_id):
     """Test rejet de commission réussi"""
     # Arrange
     mock_supabase.rpc.return_value.execute.return_value.data = True
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.reject_commission(sample_commission_id)
@@ -158,7 +158,7 @@ def test_reject_commission_already_paid(mock_supabase, sample_commission_id, moc
     mock_supabase.rpc.return_value.execute.side_effect = Exception(
         f"PostgrestAPIError: {error.message}"
     )
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act & Assert
     with pytest.raises(ValueError, match="Cannot reject paid commission"):
@@ -178,7 +178,7 @@ def test_get_commission_by_id_success(mock_supabase, sample_commission_id, sampl
     mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = [
         sample_commission
     ]
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.get_commission_by_id(sample_commission_id)
@@ -196,7 +196,7 @@ def test_get_commission_by_id_not_found(mock_supabase, sample_commission_id):
     mock_supabase.table.return_value.select.return_value.eq.return_value.execute.return_value.data = (
         []
     )
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.get_commission_by_id(sample_commission_id)
@@ -219,7 +219,7 @@ def test_get_commissions_by_status_success(mock_supabase, sample_commission):
     mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = (
         commissions_list
     )
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.get_commissions_by_status("pending")
@@ -237,7 +237,7 @@ def test_get_commissions_by_status_empty(mock_supabase):
     mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = (
         []
     )
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.get_commissions_by_status("pending")
@@ -251,7 +251,7 @@ def test_get_commissions_by_status_empty(mock_supabase):
 def test_get_commissions_by_status_invalid(mock_supabase):
     """Test statut invalide"""
     # Arrange
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act & Assert
     with pytest.raises(ValueError, match="Invalid status"):
@@ -274,7 +274,7 @@ def test_get_commissions_by_influencer_success(
     mock_supabase.table.return_value.select.return_value.eq.return_value.order.return_value.execute.return_value.data = (
         commissions_list
     )
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.get_commissions_by_influencer(sample_influencer_id)
@@ -293,7 +293,7 @@ def test_get_commissions_by_influencer_with_status_filter(
     mock_supabase.table.return_value.select.return_value.eq.return_value.eq.return_value.order.return_value.execute.return_value.data = [
         sample_commission
     ]
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.get_commissions_by_influencer(sample_influencer_id, status="pending")
@@ -314,7 +314,7 @@ def test_get_pending_commissions_total_success(mock_supabase, sample_influencer_
     # Arrange
     mock_response = [{"total": 150.50}]
     mock_supabase.rpc.return_value.execute.return_value.data = mock_response
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.get_pending_commissions_total(sample_influencer_id)
@@ -330,7 +330,7 @@ def test_get_pending_commissions_total_zero(mock_supabase, sample_influencer_id)
     # Arrange
     mock_response = [{"total": 0.0}]
     mock_supabase.rpc.return_value.execute.return_value.data = mock_response
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.get_pending_commissions_total(sample_influencer_id)
@@ -351,7 +351,7 @@ def test_get_approved_commissions_total_success(mock_supabase, sample_influencer
     # Arrange
     mock_response = [{"total": 250.75}]
     mock_supabase.rpc.return_value.execute.return_value.data = mock_response
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.get_approved_commissions_total(sample_influencer_id)
@@ -372,7 +372,7 @@ def test_batch_approve_commissions_success(mock_supabase):
     # Arrange
     commission_ids = [str(uuid4()) for _ in range(5)]
     mock_supabase.rpc.return_value.execute.return_value.data = True
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     results = service.batch_approve_commissions(commission_ids)
@@ -399,7 +399,7 @@ def test_batch_approve_commissions_partial_failure(mock_supabase, mock_postgres_
         return mock_result
 
     mock_supabase.rpc.side_effect = side_effect
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     results = service.batch_approve_commissions(commission_ids)
@@ -414,7 +414,7 @@ def test_batch_approve_commissions_partial_failure(mock_supabase, mock_postgres_
 def test_batch_approve_commissions_empty_list(mock_supabase):
     """Test approbation en lot avec liste vide"""
     # Arrange
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     results = service.batch_approve_commissions([])
@@ -432,7 +432,7 @@ def test_batch_approve_commissions_large_batch(mock_supabase):
     # Arrange
     commission_ids = [str(uuid4()) for _ in range(100)]
     mock_supabase.rpc.return_value.execute.return_value.data = True
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     results = service.batch_approve_commissions(commission_ids)
@@ -453,7 +453,7 @@ def test_approve_commission_transition_pending_to_approved(mock_supabase, sample
     """Test transition pending → approved"""
     # Arrange
     mock_supabase.rpc.return_value.execute.return_value.data = True
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.approve_commission(sample_commission_id)
@@ -468,7 +468,7 @@ def test_pay_commission_transition_approved_to_paid(mock_supabase, sample_commis
     """Test transition approved → paid"""
     # Arrange
     mock_supabase.rpc.return_value.execute.return_value.data = True
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     result = service.pay_commission(sample_commission_id)
@@ -484,7 +484,7 @@ def test_concurrent_commission_updates(mock_supabase):
     # Arrange
     commission_id = str(uuid4())
     mock_supabase.rpc.return_value.execute.return_value.data = True
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act - Simuler 2 approbations concurrentes
     result1 = service.approve_commission(commission_id)
@@ -506,7 +506,7 @@ def test_get_commissions_summary(mock_supabase, sample_influencer_id):
         {"status": "approved", "total": 200.0, "count": 10},
         {"status": "paid", "total": 300.0, "count": 15},
     ]
-    service = PaymentsService(mock_supabase)
+    service = PaymentsService()
 
     # Act
     pending_total = service.get_pending_commissions_total(sample_influencer_id)

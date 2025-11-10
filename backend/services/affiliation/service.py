@@ -23,7 +23,7 @@ from .schemas import AffiliationRequestCreate, AffiliationDecision
 
 # Import optimiseur DB
 try:
-    from backend.utils.db_optimized import DBOptimizer
+    from utils.db_optimized import DBOptimizer
 except ImportError:
     DBOptimizer = None
 

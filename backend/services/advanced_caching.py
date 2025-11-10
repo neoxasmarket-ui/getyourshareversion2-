@@ -11,7 +11,7 @@ from functools import wraps
 import redis
 from cachetools import TTLCache, LRUCache
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class AdvancedCachingStrategy:

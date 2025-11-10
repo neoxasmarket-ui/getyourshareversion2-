@@ -3,7 +3,7 @@ Fixtures et configuration communes pour les tests pytest
 """
 
 import pytest
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock, patch
 from datetime import datetime, timedelta
 from uuid import uuid4
 
@@ -31,6 +31,13 @@ def mock_supabase():
     mock.execute.return_value.data = []
 
     return mock
+
+
+@pytest.fixture(autouse=True)
+def mock_get_supabase_client(mock_supabase):
+    """Auto-mock get_supabase_client pour tous les tests"""
+    with patch('supabase_client.get_supabase_client', return_value=mock_supabase):
+        yield mock_supabase
 
 
 @pytest.fixture

@@ -12,8 +12,8 @@ from datetime import datetime
 from elasticsearch import Elasticsearch, helpers
 from elasticsearch.exceptions import NotFoundError, RequestError
 
-from backend.utils.logger import logger
-from backend.services.advanced_caching import cache_service
+from utils.logger import logger
+from services.advanced_caching import cache_service
 
 
 class ElasticsearchService:

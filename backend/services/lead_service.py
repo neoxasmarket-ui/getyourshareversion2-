@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Import optimiseur DB
 try:
-    from backend.utils.db_optimized import DBOptimizer
+    from utils.db_optimized import DBOptimizer
 except ImportError:
     DBOptimizer = None
 

@@ -11,7 +11,7 @@ from datetime import datetime
 from decimal import Decimal
 import random
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class InfluencerMatchingService:

@@ -5,7 +5,7 @@ Remplace toutes les données statiques par des requêtes Supabase réelles
 from typing import List, Dict, Optional, Any
 from datetime import datetime, timedelta
 from supabase_client import get_supabase_client
-from backend.utils.db_safe import safe_ilike
+from utils.db_safe import safe_ilike
 
 # ============================================
 # ANALYTICS - INFLUENCER

@@ -22,8 +22,8 @@ import structlog
 
 from auth import get_current_user, optional_auth
 from supabase_client import supabase
-from backend.utils.db_safe import build_or_search
-from backend.utils.db_optimized import DBOptimizer
+from utils.db_safe import build_or_search
+from utils.db_optimized import DBOptimizer
 
 router = APIRouter(prefix="/api/marketplace", tags=["Marketplace"])
 logger = structlog.get_logger()

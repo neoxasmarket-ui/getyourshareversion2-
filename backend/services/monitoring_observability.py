@@ -19,7 +19,7 @@ from functools import wraps
 from collections import defaultdict
 import asyncio
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class MetricsCollector:

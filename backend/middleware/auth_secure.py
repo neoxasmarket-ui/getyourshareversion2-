@@ -12,8 +12,8 @@ import jwt
 from datetime import datetime, timedelta
 import secrets
 
-from backend.config.security import get_jwt_secret, get_jwt_secret_key
-from backend.utils.logger import logger
+from config.security import get_jwt_secret, get_jwt_secret_key
+from utils.logger import logger
 
 
 security = HTTPBearer()

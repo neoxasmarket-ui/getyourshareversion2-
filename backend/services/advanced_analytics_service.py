@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 import statistics
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class AdvancedAnalyticsService:

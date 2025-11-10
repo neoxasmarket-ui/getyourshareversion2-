@@ -10,7 +10,7 @@ from pathlib import Path
 from PIL import Image, ImageFilter, ImageStat, ExifTags
 import numpy as np
 
-from backend.utils.logger import logger
+from utils.logger import logger
 
 
 class ImageValidationError(Exception):
