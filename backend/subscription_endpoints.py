@@ -15,10 +15,10 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
-from supabase import create_client, Client
 import os
 import stripe
 from auth import get_current_user, get_current_admin
+from supabase_client import supabase
 
 router = APIRouter(prefix="/api/subscriptions", tags=["Subscriptions"])
 
@@ -26,21 +26,10 @@ router = APIRouter(prefix="/api/subscriptions", tags=["Subscriptions"])
 # ENVIRONMENT VARIABLES VALIDATION
 # ============================================
 
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-
-if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
-    raise ValueError("Missing required Supabase environment variables")
 
 if not STRIPE_SECRET_KEY or not STRIPE_SECRET_KEY.startswith("sk_"):
     raise ValueError("Missing or invalid STRIPE_SECRET_KEY")
-
-# ============================================
-# SUPABASE CLIENT
-# ============================================
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 # ============================================
 # STRIPE CONFIGURATION

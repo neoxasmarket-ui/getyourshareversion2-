@@ -4,7 +4,8 @@ Endpoints pour la recherche avancée d'influenceurs
 
 from fastapi import HTTPException, Depends, Query
 from typing import Optional, List
-from db_helpers import get_supabase_client, get_user_by_id
+from supabase_client import get_supabase_client
+from db_helpers import get_user_by_id
 from utils.db_safe import safe_ilike
 
 

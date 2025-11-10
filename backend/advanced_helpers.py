@@ -473,3 +473,22 @@ def deactivate_user(user_id: str) -> bool:
     except Exception as e:
         print(f"Error deactivating user: {e}")
         return False
+
+
+# ============================================
+# EMAIL VERIFICATION
+# ============================================
+
+
+def generate_verification_token() -> str:
+    """Génère un token de vérification sécurisé"""
+    return secrets.token_urlsafe(32)
+
+
+def send_verification_email(to_email: str, token: str) -> str:
+    """
+    Envoie un email de vérification
+    Wrapper autour de email_service.send_verification_email
+    """
+    from email_service import send_verification_email as send_email_verification
+    return send_email_verification(to_email, token)

@@ -11,7 +11,7 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 import os
 
-from auth import get_current_user, role_checker
+from auth import get_current_user, get_current_admin, require_role
 from moderation_service import moderate_product, ModerationStats
 
 # Configuration Supabase
@@ -65,7 +65,7 @@ async def get_pending_moderation(
     limit: int = 50,
     offset: int = 0,
     risk_level: Optional[str] = None,
-    current_user: dict = Depends(role_checker(["admin"]))
+    current_user: dict = Depends(get_current_admin)
 ):
     """
     Liste des produits en attente de modération
@@ -108,7 +108,7 @@ async def get_pending_moderation(
 @router.get("/stats")
 async def get_moderation_stats(
     period: str = "today",  # today, week, month, all
-    current_user: dict = Depends(role_checker(["admin"]))
+    current_user: dict = Depends(get_current_admin)
 ):
     """
     Statistiques de modération
@@ -169,7 +169,7 @@ async def get_moderation_stats(
 @router.post("/review")
 async def review_moderation(
     request: ModerationReviewRequest = Body(...),
-    current_user: dict = Depends(role_checker(["admin"]))
+    current_user: dict = Depends(get_current_admin)
 ):
     """
     Approuver ou rejeter un produit en modération
@@ -233,7 +233,7 @@ async def review_moderation(
 @router.post("/bulk-review")
 async def bulk_review_moderation(
     request: BulkModerationRequest = Body(...),
-    current_user: dict = Depends(role_checker(["admin"]))
+    current_user: dict = Depends(get_current_admin)
 ):
     """
     Approuver ou rejeter plusieurs produits en une fois
@@ -291,7 +291,7 @@ async def bulk_review_moderation(
 @router.get("/{moderation_id}")
 async def get_moderation_details(
     moderation_id: str,
-    current_user: dict = Depends(role_checker(["admin"]))
+    current_user: dict = Depends(get_current_admin)
 ):
     """
     Détails complets d'un produit en modération
@@ -336,7 +336,7 @@ async def get_moderation_details(
 async def get_merchant_moderation_history(
     merchant_id: str,
     limit: int = 20,
-    current_user: dict = Depends(role_checker(["admin"]))
+    current_user: dict = Depends(get_current_admin)
 ):
     """
     Historique de modération d'un merchant spécifique
@@ -420,7 +420,7 @@ async def get_my_pending_products(
 async def test_moderation_service(
     product_name: str = Body(...),
     description: str = Body(...),
-    current_user: dict = Depends(role_checker(["admin"]))
+    current_user: dict = Depends(get_current_admin)
 ):
     """
     Endpoint de test pour essayer la modération IA sans créer de produit
