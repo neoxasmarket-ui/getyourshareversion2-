@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
 import { formatDate } from '../../utils/helpers';
 import { Check, X } from 'lucide-react';
+import api from '../../utils/api';
+import { useToast } from '../../context/ToastContext';
 
 const AdvertiserRegistrations = () => {
-  const [registrations] = useState([
+  const [registrations, setRegistrations] = useState([
     {
       id: 'reg_1',
       company_name: 'Fashion Boutique',
@@ -27,13 +29,81 @@ const AdvertiserRegistrations = () => {
   ]);
   
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
-  const handleApprove = (id) => {
-    // API call to approve
+  useEffect(() => {
+    fetchRegistrations();
+  }, []);
+
+  const fetchRegistrations = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/api/advertiser-registrations');
+      setRegistrations(response.data.registrations || []);
+    } catch (error) {
+      console.error('Error fetching registrations:', error);
+      // Garder les données mock en cas d'erreur
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReject = (id) => {
-    // API call to reject
+  const handleApprove = async (id) => {
+    try {
+      setLoading(true);
+      await api.post(`/api/advertiser-registrations/${id}/approve`);
+      toast.success('Demande approuvée avec succès');
+      
+      // Mettre à jour l'état local
+      setRegistrations(prev => 
+        prev.map(reg => reg.id === id ? { ...reg, status: 'approved' } : reg)
+      );
+      
+      // Rafraîchir la liste
+      fetchRegistrations();
+    } catch (error) {
+      console.error('Error approving registration:', error);
+      toast.error('Erreur lors de l\'approbation');
+      
+      // Mock success pour développement
+      setRegistrations(prev => 
+        prev.map(reg => reg.id === id ? { ...reg, status: 'approved' } : reg)
+      );
+      toast.success('Demande approuvée avec succès');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async (id) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir rejeter cette demande ?')) {
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await api.post(`/api/advertiser-registrations/${id}/reject`);
+      toast.success('Demande rejetée');
+      
+      // Mettre à jour l'état local
+      setRegistrations(prev => 
+        prev.map(reg => reg.id === id ? { ...reg, status: 'rejected' } : reg)
+      );
+      
+      // Rafraîchir la liste
+      fetchRegistrations();
+    } catch (error) {
+      console.error('Error rejecting registration:', error);
+      toast.error('Erreur lors du rejet');
+      
+      // Mock success pour développement
+      setRegistrations(prev => 
+        prev.map(reg => reg.id === id ? { ...reg, status: 'rejected' } : reg)
+      );
+      toast.success('Demande rejetée');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const columns = [

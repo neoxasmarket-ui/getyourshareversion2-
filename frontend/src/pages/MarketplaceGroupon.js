@@ -57,6 +57,15 @@ const MarketplaceGroupon = () => {
     }
   };
 
+  const loadMerchantServices = async () => {
+    try {
+      const res = await api.get('/api/services');
+      setMerchantProducts(res.data.services || []);
+    } catch (error) {
+      console.error('Error loading merchant services:', error);
+    }
+  };
+
   const handleCollaborateClick = (influencer) => {
     // Vérifier si l'utilisateur est connecté
     if (!user) {
@@ -87,11 +96,11 @@ const MarketplaceGroupon = () => {
     setLoading(true);
     try {
       if (currentTab === 0) {
-        const res = await api.get('/api/marketplace/products?type=product&limit=20');
+        const res = await api.get('/api/products?limit=20');
         setProducts(res.data.products || []);
       } else if (currentTab === 1) {
-        const res = await api.get('/api/marketplace/products?type=service&limit=20');
-        setServices(res.data.products || []);
+        const res = await api.get('/api/services?limit=20');
+        setServices(res.data.services || []);
       } else if (currentTab === 2) {
         const res = await api.get('/api/commercials/directory?limit=20');
         setCommercials(res.data.commercials || []);

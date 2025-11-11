@@ -245,7 +245,7 @@ const Login = () => {
                   {/* Admin */}
                   <div className="mt-6">
                     <button
-                      onClick={() => quickLogin('admin@shareyoursales.ma', 'Admin123')}
+                      onClick={() => quickLogin('admin@getyourshare.com', 'Test123!')}
                       disabled={loading}
                       className="w-full flex items-center justify-between px-4 py-3 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition disabled:opacity-50"
                     >
@@ -271,7 +271,7 @@ const Login = () => {
                     <div className="space-y-2">
                       {/* Influenceur STARTER */}
                       <button
-                        onClick={() => quickLogin('foodinfluencer@gmail.com', 'Hassan123')}
+                        onClick={() => quickLogin('hassan.oudrhiri@getyourshare.com', 'Test123!')}
                         disabled={loading}
                         className="w-full flex items-center justify-between px-4 py-3 border-2 border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition disabled:opacity-50"
                       >
@@ -289,7 +289,7 @@ const Login = () => {
 
                       {/* Influenceur PRO */}
                       <button
-                        onClick={() => quickLogin('influencer@example.com', 'Password123')}
+                        onClick={() => quickLogin('sarah.benali@getyourshare.com', 'Test123!')}
                         disabled={loading}
                         className="w-full flex items-center justify-between px-4 py-3 border-2 border-yellow-200 rounded-lg hover:border-yellow-400 hover:bg-yellow-50 transition disabled:opacity-50"
                       >
@@ -307,7 +307,7 @@ const Login = () => {
 
                       {/* Influenceur ENTERPRISE */}
                       <button
-                        onClick={() => quickLogin('karim.influencer@gmail.com', 'Karim123')}
+                        onClick={() => quickLogin('karim.benjelloun@getyourshare.com', 'Test123!')}
                         disabled={loading}
                         className="w-full flex items-center justify-between px-4 py-3 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition disabled:opacity-50"
                       >
@@ -334,7 +334,7 @@ const Login = () => {
                     <div className="space-y-2">
                       {/* Marchand STARTER */}
                       <button
-                        onClick={() => quickLogin('merchant@example.com', 'Merchant123')}
+                        onClick={() => quickLogin('boutique.maroc@getyourshare.com', 'Test123!')}
                         disabled={loading}
                         className="w-full flex items-center justify-between px-4 py-3 border-2 border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition disabled:opacity-50"
                       >
@@ -352,7 +352,7 @@ const Login = () => {
 
                       {/* Marchand PRO */}
                       <button
-                        onClick={() => quickLogin('merchant2@artisanmaroc.ma', 'Luxury123')}
+                        onClick={() => quickLogin('luxury.crafts@getyourshare.com', 'Test123!')}
                         disabled={loading}
                         className="w-full flex items-center justify-between px-4 py-3 border-2 border-yellow-200 rounded-lg hover:border-yellow-400 hover:bg-yellow-50 transition disabled:opacity-50"
                       >
@@ -370,7 +370,7 @@ const Login = () => {
 
                       {/* Marchand ENTERPRISE */}
                       <button
-                        onClick={() => quickLogin('premium.shop@electromaroc.ma', 'Electro123')}
+                        onClick={() => quickLogin('electromaroc@getyourshare.com', 'Test123!')}
                         disabled={loading}
                         className="w-full flex items-center justify-between px-4 py-3 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition disabled:opacity-50"
                       >
@@ -395,7 +395,7 @@ const Login = () => {
                       Commercial
                     </p>
                     <button
-                      onClick={() => quickLogin('commerciale@shareyoursales.ma', 'Sofia123')}
+                      onClick={() => quickLogin('sofia.chakir@getyourshare.com', 'Test123!')}
                       disabled={loading}
                       className="w-full flex items-center justify-between px-4 py-3 border-2 border-indigo-200 rounded-lg hover:border-indigo-400 hover:bg-indigo-50 transition disabled:opacity-50"
                     >

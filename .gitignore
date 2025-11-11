@@ -34,7 +34,13 @@ dist/
 dist
 
 # Environment files (comprehensive coverage)
-
+# ✅ FIX SÉCURITÉ P0: Protection complète des fichiers .env
+.env
+.env.*
+!.env.example
+*.env.local
+.env.local
+.env.*.local
 *token.json*
 *credentials.json*
 

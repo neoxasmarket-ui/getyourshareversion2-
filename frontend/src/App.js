@@ -56,6 +56,9 @@ const MessagingPage = lazy(() => import('./pages/MessagingPage'));
 const ProductsListPage = lazy(() => import('./pages/products/ProductsListPage'));
 const CreateProductPage = lazy(() => import('./pages/products/CreateProductPage'));
 
+// ---------- Services ----------
+const ServicesListPage = lazy(() => import('./pages/services/ServicesListPage'));
+
 // ---------- Advertisers ----------
 const AdvertisersList = lazy(() => import('./pages/advertisers/AdvertisersList'));
 const AdvertiserRegistrations = lazy(() => import('./pages/advertisers/AdvertiserRegistrations'));
@@ -104,6 +107,11 @@ const PlatformSettings = lazy(() => import('./pages/settings/PlatformSettings'))
 const AdminSocialDashboard = lazy(() => import('./pages/admin/AdminSocialDashboard'));
 const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
 const ModerationDashboard = lazy(() => import('./pages/admin/ModerationDashboard'));
+
+// ---------- TOP 5 FEATURES ----------
+const AdvancedAnalyticsDashboard = lazy(() => import('./pages/AdvancedAnalyticsDashboard'));
+const InfluencerMatchingPage = lazy(() => import('./pages/InfluencerMatchingPage'));
+const MobileDashboard = lazy(() => import('./components/mobile/MobileDashboard'));
 
 // ---------- Company & Subscription ----------
 const SubscriptionDashboard = lazy(() => import('./pages/company/SubscriptionDashboard'));
@@ -424,6 +432,19 @@ function App() {
                     </RoleProtectedRoute>
                   }
                 />
+
+                {/* ========================================
+                    SERVICES
+                ======================================== */}
+          <Route
+            path="/services"
+            element={
+              <ProtectedRoute>
+                <ServicesListPage />
+              </ProtectedRoute>
+            }
+          />
+
                 <Route
                   path="/products/:productId/edit"
                   element={
@@ -678,6 +699,39 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <Integrations />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* ========================================
+                    TOP 5 FEATURES - ROUTES
+                ======================================== */}
+                {/* Analytics Pro Dashboard - Tous les acteurs */}
+                <Route
+                  path="/analytics-pro"
+                  element={
+                    <ProtectedRoute>
+                      <AdvancedAnalyticsDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Influencer Matching Tinder - Marchands uniquement */}
+                <Route
+                  path="/matching"
+                  element={
+                    <RoleProtectedRoute allowedRoles={['merchant', 'admin']}>
+                      <InfluencerMatchingPage />
+                    </RoleProtectedRoute>
+                  }
+                />
+
+                {/* Mobile Dashboard - Tous les acteurs */}
+                <Route
+                  path="/mobile-dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <MobileDashboard />
                     </ProtectedRoute>
                   }
                 />

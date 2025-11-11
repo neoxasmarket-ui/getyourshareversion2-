@@ -65,7 +65,9 @@ const MessagingPage = () => {
     try {
       const response = await api.get(`/api/messages/${convId}`);
       setMessages(response.data.messages || []);
-      setActiveConversation(response.data.conversation);
+      // Ne pas écraser activeConversation avec les données de l'API messages
+      // car elle contient déjà les infos merchant/influencer de l'API conversations
+      // setActiveConversation(response.data.conversation);
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
@@ -102,11 +104,38 @@ const MessagingPage = () => {
 
   const getOtherUserInfo = (conversation) => {
     if (!conversation) return { name: 'Utilisateur', role: '', badge: '' };
+    
+    // Pour les admins, afficher les deux parties de la conversation
+    if (user?.role === 'admin' && conversation.merchant && conversation.influencer) {
+      return {
+        name: `${conversation.merchant.name} ↔ ${conversation.influencer.name}`,
+        role: 'Conversation',
+        badge: 'bg-purple-100 text-purple-800'
+      };
+    }
+    
+    // Pour merchant/influencer, utiliser other_user
+    if (conversation.other_user) {
+      const roleLabels = {
+        influencer: { name: 'Influenceur', badge: 'bg-green-100 text-green-800' },
+        merchant: { name: 'Marchand', badge: 'bg-blue-100 text-blue-800' },
+        admin: { name: 'Admin', badge: 'bg-purple-100 text-purple-800' }
+      };
+      
+      const roleInfo = roleLabels[conversation.other_user.role] || { name: 'Utilisateur', badge: 'bg-gray-100 text-gray-800' };
+      
+      return {
+        name: conversation.other_user.name || 'Utilisateur',
+        role: roleInfo.name,
+        badge: roleInfo.badge
+      };
+    }
+    
+    // Fallback pour l'ancien format
     const isUser1 = conversation.user1_id === user?.id;
     const otherType = isUser1 ? conversation.user2_type : conversation.user1_type;
     const otherId = isUser1 ? conversation.user2_id : conversation.user1_id;
     
-    // Traduire les rôles
     const roleLabels = {
       influencer: { name: 'Influenceur', badge: 'bg-green-100 text-green-800' },
       merchant: { name: 'Marchand', badge: 'bg-blue-100 text-blue-800' },
@@ -115,7 +144,6 @@ const MessagingPage = () => {
     
     const roleInfo = roleLabels[otherType] || { name: otherType || 'Utilisateur', badge: 'bg-gray-100 text-gray-800' };
     
-    // Créer un nom par défaut sécurisé
     let defaultName = roleInfo.name;
     if (otherId) {
       const idStr = String(otherId);
@@ -153,7 +181,7 @@ const MessagingPage = () => {
         <div className="w-80 flex-shrink-0">
           <Card className="h-full flex flex-col">
             <div className="p-4 border-b">
-              <h2 className="text-xl font-bold mb-4">Messages</h2>
+              <h2 className="text-xl font-bold mb-4">Modération & Support</h2>
               
               {/* Search */}
               <div className="relative">
@@ -269,7 +297,9 @@ const MessagingPage = () => {
                   </div>
                 ) : (
                   messages.map((msg, idx) => {
-                    const isOwn = msg.sender_id === user?.id;
+                    const isOwn = msg.sender_id === user?.id || msg.is_mine;
+                    const showSenderName = user?.role === 'admin' || !isOwn;
+                    
                     return (
                       <div
                         key={msg.id}
@@ -282,6 +312,22 @@ const MessagingPage = () => {
                               : 'bg-gray-100 text-gray-900'
                           }`}
                         >
+                          {user?.role === 'admin' && msg.sender_name && (
+                            <div className={`text-xs font-semibold mb-1 ${isOwn ? 'text-indigo-200' : 'text-gray-600'}`}>
+                              {msg.sender_name}
+                              {msg.sender_role && (
+                                <span className={`ml-2 px-2 py-0.5 rounded ${
+                                  msg.sender_role === 'merchant' ? 'bg-blue-200 text-blue-800' :
+                                  msg.sender_role === 'influencer' ? 'bg-green-200 text-green-800' :
+                                  'bg-gray-200 text-gray-800'
+                                }`}>
+                                  {msg.sender_role === 'merchant' ? 'Marchand' : 
+                                   msg.sender_role === 'influencer' ? 'Influenceur' : 
+                                   msg.sender_role}
+                                </span>
+                              )}
+                            </div>
+                          )}
                           <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                           <div className={`flex items-center gap-1 mt-1 text-xs ${isOwn ? 'text-indigo-200' : 'text-gray-500'}`}>
                             <span>{new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -299,6 +345,54 @@ const MessagingPage = () => {
 
               {/* Input message */}
               <div className="p-4 border-t">
+                {/* Messages prédéfinis pour admin */}
+                {user?.role === 'admin' && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setNewMessage("Bonjour, je suis l'administrateur de la plateforme. Comment puis-je vous aider à résoudre ce différend ?")}
+                      className="text-xs px-3 py-1.5 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition"
+                    >
+                      👋 Intervention admin
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewMessage("Merci de rester courtois et professionnel dans vos échanges. Je suis là pour faciliter la communication entre les deux parties.")}
+                      className="text-xs px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition"
+                    >
+                      ⚖️ Rappel courtoisie
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewMessage("Pouvez-vous me fournir plus de détails sur le problème rencontré ? Je vais examiner la situation et revenir vers vous rapidement.")}
+                      className="text-xs px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full hover:bg-yellow-200 transition"
+                    >
+                      🔍 Demande détails
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewMessage("J'ai examiné votre cas. Voici ma recommandation pour résoudre cette situation de manière équitable pour les deux parties...")}
+                      className="text-xs px-3 py-1.5 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition"
+                    >
+                      ✅ Résolution
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewMessage("Pour toute question concernant les paiements, veuillez contacter notre service financier à finance@getyourshare.com")}
+                      className="text-xs px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full hover:bg-indigo-200 transition"
+                    >
+                      💰 Paiements
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewMessage("Si le problème persiste, je vais suspendre temporairement cette collaboration jusqu'à clarification. Merci de votre compréhension.")}
+                      className="text-xs px-3 py-1.5 bg-red-100 text-red-700 rounded-full hover:bg-red-200 transition"
+                    >
+                      ⛔ Suspension
+                    </button>
+                  </div>
+                )}
+                
                 <form onSubmit={handleSendMessage} className="flex gap-2">
                   <input
                     type="text"

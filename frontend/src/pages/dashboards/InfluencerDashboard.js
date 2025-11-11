@@ -9,6 +9,7 @@ import Card from '../../components/common/Card';
 import EmptyState from '../../components/common/EmptyState';
 import Modal from '../../components/common/Modal';
 import MobilePaymentWidget from '../../components/payments/MobilePaymentWidget';
+import GamificationWidget from '../../components/GamificationWidget';
 import {
   DollarSign, MousePointer, ShoppingCart, TrendingUp,
   Eye, Target, Award, Link as LinkIcon, Sparkles, RefreshCw, X, Send, BarChart3, Wallet,
@@ -313,6 +314,21 @@ const InfluencerDashboard = () => {
             <RefreshCw size={18} />
           </button>
           <button
+            onClick={() => navigate('/analytics-pro')}
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition flex items-center gap-2"
+            title="Analytics Pro avec IA"
+          >
+            <BarChart3 size={18} />
+            Analytics Pro
+          </button>
+          <button
+            onClick={() => navigate('/mobile-dashboard')}
+            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg hover:from-blue-600 hover:to-cyan-600 transition flex items-center gap-2"
+            title="Version Mobile PWA"
+          >
+            📱 Mobile
+          </button>
+          <button
             onClick={() => navigate('/marketplace', { state: { fromDashboard: true } })}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
           >
@@ -516,6 +532,9 @@ const InfluencerDashboard = () => {
           </div>
         </Card>
       )}
+
+      {/* Gamification Widget */}
+      <GamificationWidget userId={user?.id} userType="influencer" />
 
       {/* Balance Card */}
       <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl p-8 text-white">

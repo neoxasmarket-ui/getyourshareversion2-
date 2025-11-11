@@ -12,6 +12,7 @@ import {
   Settings,
   Newspaper,
   ShoppingCart,
+  Briefcase,
   LogOut,
   ChevronDown,
   ChevronRight,
@@ -86,6 +87,7 @@ const Sidebar = () => {
       advertisers: t('nav_advertisers') || 'Annonceurs',
       campaigns: t('nav_campaigns') || 'Campagnes/Offres',
       products: t('nav_products') || 'Produits',
+      services: 'Services', // Traduction directe en attendant l'ajout dans i18n
       moderation: t('nav_moderation') || 'Modération IA',
       leads: t('nav_leads') || 'Leads',
       lost_orders: t('nav_lost_orders') || 'Commandes Perdues',
@@ -267,6 +269,11 @@ const Sidebar = () => {
         icon: <Newspaper size={20} />,
         path: '/news',
       },
+      // ========== SECTION ANNONCEURS ==========
+      {
+        section: true,
+        title: 'Gestion Annonceurs',
+      },
       {
         title: translations.advertisers,
         icon: <Users size={20} />,
@@ -282,15 +289,35 @@ const Sidebar = () => {
         icon: <Target size={20} />,
         path: '/campaigns',
       },
+      // ========== SECTION CATALOGUE ==========
+      {
+        section: true,
+        title: 'Catalogue Produits & Services',
+      },
       {
         title: translations.products,
         icon: <ShoppingCart size={20} />,
         path: '/products',
       },
       {
+        title: translations.services,
+        icon: <Briefcase size={20} />,
+        path: '/services',
+      },
+      {
+        title: translations.marketplace,
+        icon: <ShoppingCart size={20} />,
+        path: '/marketplace',
+      },
+      {
         title: translations.moderation,
         icon: <Shield size={20} />,
         path: '/admin/moderation',
+      },
+      // ========== SECTION PERFORMANCE ==========
+      {
+        section: true,
+        title: 'Performance & Analytics',
       },
       {
         title: translations.performance,
@@ -302,6 +329,11 @@ const Sidebar = () => {
           { title: translations.leads, path: '/performance/leads' },
           { title: translations.reports, path: '/performance/reports' },
         ],
+      },
+      // ========== SECTION AFFILIÉS ==========
+      {
+        section: true,
+        title: 'Gestion Affiliés',
       },
       {
         title: translations.affiliates,
@@ -316,6 +348,11 @@ const Sidebar = () => {
           { title: translations.balance_report, path: '/affiliates/balance-report' },
         ],
       },
+      // ========== SECTION SYSTÈME ==========
+      {
+        section: true,
+        title: 'Système & Outils',
+      },
       {
         title: translations.logs,
         icon: <FileText size={20} />,
@@ -326,11 +363,6 @@ const Sidebar = () => {
           { title: translations.audit, path: '/logs/audit' },
           { title: translations.webhooks, path: '/logs/webhooks' },
         ],
-      },
-      {
-        title: translations.marketplace,
-        icon: <ShoppingCart size={20} />,
-        path: '/marketplace',
       },
       {
         title: translations.tracking_links,
@@ -346,6 +378,11 @@ const Sidebar = () => {
         title: translations.platform_subscriptions,
         icon: <Zap size={20} />,
         path: '/subscription',
+      },
+      // ========== SECTION CONFIGURATION ==========
+      {
+        section: true,
+        title: 'Configuration',
       },
       {
         title: translations.settings,
@@ -385,6 +422,19 @@ const Sidebar = () => {
   const menuItems = getMenuItemsForRole(user?.role);
 
   const renderMenuItem = (item) => {
+    // Rendre une section (titre de séparation)
+    if (item.section) {
+      return (
+        <div key={item.title} className="mt-6 mb-2">
+          <div className="px-4 text-xs font-bold text-blue-300 uppercase tracking-wider">
+            {item.title}
+          </div>
+          <div className="mt-2 border-t border-blue-600"></div>
+        </div>
+      );
+    }
+
+    // Rendre un sous-menu
     if (item.submenu) {
       return (
         <div key={item.submenu}>

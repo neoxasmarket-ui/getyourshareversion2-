@@ -50,7 +50,7 @@ export default {
   nav_performance: 'Performance',
   nav_tracking: 'Tracking',
   nav_subscription: 'Subscription',
-  nav_news: 'News & Newsletter',
+  nav_news: 'Moderation & Support',
   nav_advertisers: 'Advertisers',
   nav_campaigns: 'Campaigns/Offers',
   nav_moderation: 'AI Moderation',

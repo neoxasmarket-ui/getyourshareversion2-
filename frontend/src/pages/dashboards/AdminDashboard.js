@@ -8,7 +8,7 @@ import SkeletonDashboard from '../../components/common/SkeletonLoader';
 import EmptyState from '../../components/common/EmptyState';
 import {
   TrendingUp, Users, DollarSign, ShoppingBag,
-  Sparkles, BarChart3, Target, Eye, Settings, FileText, Bell, Download, RefreshCw
+  Sparkles, BarChart3, Target, Eye, Settings, FileText, Bell, Download, RefreshCw, Briefcase
 } from 'lucide-react';
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
@@ -60,6 +60,7 @@ const AdminDashboard = () => {
           total_merchants: 0,
           total_influencers: 0,
           total_products: 0,
+          total_services: 0,
           platformMetrics: {
             avg_conversion_rate: 0,
             monthly_clicks: 0,
@@ -129,7 +130,8 @@ const AdminDashboard = () => {
           revenue: stats?.total_revenue || 0,
           merchants: stats?.total_merchants || 0,
           influencers: stats?.total_influencers || 0,
-          products: stats?.total_products || 0
+          products: stats?.total_products || 0,
+          services: stats?.total_services || 0
         },
         merchants: merchants.slice(0, 10),
         influencers: influencers.slice(0, 10)
@@ -147,6 +149,7 @@ Revenus Total: ${report.stats.revenue.toLocaleString()} €
 Entreprises: ${report.stats.merchants}
 Influenceurs: ${report.stats.influencers}
 Produits: ${report.stats.products}
+Services: ${report.stats.services}
 
 TOP ENTREPRISES
 --------------
@@ -230,7 +233,7 @@ Généré par ShareYourSales
             {exportingPDF ? 'Export...' : 'Export Rapport'}
           </button>
           <button 
-            onClick={() => navigate('/admin/users/create')}
+            onClick={() => navigate('/admin/users')}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
           >
             <Users size={18} />
@@ -246,7 +249,7 @@ Généré par ShareYourSales
         </div>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid - Première ligne : 4 cartes principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Revenus Total"
@@ -272,6 +275,16 @@ Généré par ShareYourSales
           value={stats?.total_products || 0}
           icon={<Sparkles className="text-orange-600" size={24} />}
           trend={5.7}
+        />
+      </div>
+
+      {/* Stats Grid - Deuxième ligne : Services et autres */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+        <StatCard
+          title="Services"
+          value={stats?.total_services || 0}
+          icon={<Briefcase className="text-teal-600" size={24} />}
+          trend={12.4}
         />
       </div>
 

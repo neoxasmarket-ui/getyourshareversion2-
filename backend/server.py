@@ -248,12 +248,29 @@ from webhook_service import webhook_service
 # Initialiser les services
 payment_service = AutoPaymentService()
 
-# CORS configuration - Allow all localhost origins
+# CORS configuration - Whitelist sécurisée par environnement
+# ✅ FIX SÉCURITÉ P0: Remplacement wildcard par whitelist
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+    os.getenv("FRONTEND_URL", "https://getyourshare.com"),
+    os.getenv("PRODUCTION_URL", "https://www.getyourshare.com"),
+]
+
+# Ajouter origines de développement si ENV=development
+if os.getenv("ENV", "development") == "development":
+    allowed_origins.extend([
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=allowed_origins,  # ✅ Whitelist au lieu de wildcard
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -1944,7 +1961,7 @@ async def get_ai_predictions(payload: dict = Depends(verify_token)):
         
         # Prédictions simples basées sur la tendance
         predicted_next_month = int(avg_per_day * 30 * 1.1)  # +10% croissance estimée
-        trend_score = min(100, (avg_per_day / 5) * 100) if avg_per_day > 0 else 20  # Score sur 100
+        trend_score = min(100, (avg_per_day / 5) *  100) if avg_per_day > 0 else 20  # Score sur 100
         
         # Recommandations basées sur les performances
         if avg_per_day < 2:
@@ -2333,7 +2350,7 @@ async def get_merchant_performance(payload: dict = Depends(verify_token)):
         sales_result = supabase.table("sales").select("id", count="exact").eq("merchant_id", merchant_id).execute()
         total_sales = sales_result.count or 0
         
-        links_result = supabase.table("trackable_links").select("clicks", count="exact").execute()
+        links_result = supabase.table("trackable_links").select("clicks").execute()
         total_clicks = sum(link.get("clicks", 0) for link in links_result.data) or 1
         
         conversion_rate = (total_sales / total_clicks * 100) if total_clicks > 0 else 0
@@ -2566,6 +2583,8 @@ async def get_platform_revenue(
             'recent_commissions': recent_commissions
         }
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting platform revenue: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -2794,15 +2813,15 @@ async def generate_tracking_link(data: AffiliateLinkGenerate, payload: dict = De
     
     Body:
     {
-        "product_id": "uuid"
+      "product_id": "uuid"
     }
     
     Returns:
     {
-        "link_id": "uuid",
-        "short_code": "ABC12345",
-        "tracking_url": "http://localhost:8000/r/ABC12345",
-        "destination_url": "https://boutique.com/produit"
+      "link_id": "uuid",
+      "short_code": "ABC12345",
+      "tracking_url": "http://localhost:8000/r/ABC12345",
+      "destination_url": "https://boutique.com/produit"
     }
     """
     try:
@@ -2898,29 +2917,33 @@ async def shopify_webhook(merchant_id: str, request: Request):
     - X-Shopify-Shop-Domain: votreboutique.myshopify.com
     """
     try:
-        result = await webhook_service.process_shopify_webhook(
-            request=request,
-            merchant_id=merchant_id
+        # Récupérer payload et headers
+        body = await request.body()
+        headers = dict(request.headers)
+        
+        try:
+            payload = await request.json()
+        except Exception as e:
+            logger.error(f'Error in operation: {e}', exc_info=True)
+            payload = {}
+        
+        # Traiter webhook
+        result = payment_gateway_service.process_webhook(
+            gateway_type='shopify',
+            merchant_id=merchant_id,
+            payload=payload,
+            headers=headers,
+            raw_body=body.decode('utf-8')
         )
         
         if result.get('success'):
-            return {
-                "status": "success",
-                "message": "Vente enregistrée",
-                "sale_id": result.get('sale_id')
-            }
+            return {"status": "success", "message": "Vente enregistrée", "sale_id": result.get('sale_id')}
         else:
-            return {
-                "status": "error",
-                "message": result.get('error')
-            }
+            return {"status": "error", "message": result.get('error')}
             
     except Exception as e:
         print(f"❌ Erreur webhook Shopify: {e}")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return {"status": "error", "message": str(e)}
 
 
 @app.post("/api/webhook/woocommerce/{merchant_id}")
@@ -2936,29 +2959,40 @@ async def woocommerce_webhook(merchant_id: str, request: Request):
     5. Secret: Configuré dans votre compte marchand
     """
     try:
-        result = await webhook_service.process_woocommerce_webhook(
-            request=request,
-            merchant_id=merchant_id
+        # Récupérer payload et headers
+        body = await request.body()
+        headers = dict(request.headers)
+        
+        # Essayer de parser le JSON
+        try:
+            payload = await request.json()
+        except Exception as e:
+            logger.error(f'Error in operation: {e}', exc_info=True)
+            # Si form-urlencoded, convertir
+            import urllib.parse
+            form_data = urllib.parse.parse_qs(body.decode('utf-8'))
+            payload = {
+                key: value[0] if len(value) == 1 else value
+                for key, value in form_data.items()
+            }
+        
+        # Traiter webhook
+        result = payment_gateway_service.process_webhook(
+            gateway_type='woocommerce',
+            merchant_id=merchant_id,
+            payload=payload,
+            headers=headers,
+            raw_body=body.decode('utf-8')
         )
         
         if result.get('success'):
-            return {
-                "status": "success",
-                "message": "Vente enregistrée",
-                "sale_id": result.get('sale_id')
-            }
+            return {"status": "success", "message": "Vente enregistrée", "sale_id": result.get('sale_id')}
         else:
-            return {
-                "status": "error",
-                "message": result.get('error')
-            }
+            return {"status": "error", "message": result.get('error')}
             
     except Exception as e:
         print(f"❌ Erreur webhook WooCommerce: {e}")
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return {"status": "error", "message": str(e)}
 
 
 @app.post("/api/webhook/tiktok/{merchant_id}")
@@ -3007,9 +3041,23 @@ async def tiktok_shop_webhook(merchant_id: str, request: Request):
     }
     """
     try:
-        result = await webhook_service.process_tiktok_webhook(
-            request=request,
-            merchant_id=merchant_id
+        # Récupérer payload et headers
+        body = await request.body()
+        headers = dict(request.headers)
+        
+        try:
+            payload = await request.json()
+        except Exception as e:
+            logger.error(f'Error in operation: {e}', exc_info=True)
+            payload = {}
+        
+        # Traiter webhook
+        result = payment_gateway_service.process_webhook(
+            gateway_type='tiktok',
+            merchant_id=merchant_id,
+            payload=payload,
+            headers=headers,
+            raw_body=body.decode('utf-8')
         )
         
         if result.get('success'):
@@ -3142,16 +3190,19 @@ async def cmi_webhook(merchant_id: str, request: Request):
     """
     Webhook CMI (Centre Monétique Interbancaire)
     
-    URL à configurer dans CMI: https://yourdomain.com/api/webhook/cmi/{merchant_id}
+    Configuration CMI:
+    1. Aller dans l'interface CMI → Webhooks
+    2. Ajouter un webhook: URL = https://votre-domaine.com/api/webhook/cmi/{merchant_id}
+    3. Choisir les événements à suivre (ex: paiement accepté, paiement échoué)
     
     Headers:
     - X-CMI-Signature: signature HMAC-SHA256
     
-    Payload:
+    Payload exemple:
     {
       "event": "payment.succeeded",
       "payment_id": "PMT_123456789",
-      "amount": 15000,  // en centimes
+      "amount": 15000,
       "currency": "MAD",
       "status": "completed",
       "order_id": "ORDER-2025-001",
@@ -3196,7 +3247,7 @@ async def payzen_webhook(merchant_id: str, request: Request):
     URL à configurer dans PayZen: https://yourdomain.com/api/webhook/payzen/{merchant_id}
     
     Headers:
-    - kr-hash: signature SHA256
+    - kr-hash: signature HMAC-SHA256 en Base64
     
     Payload (form-urlencoded):
     {
@@ -3758,6 +3809,244 @@ async def send_payment_reminders(payload: dict = Depends(verify_token)):
 
 
 # ============================================
+# SUBSCRIPTION PLANS & USAGE ENDPOINTS
+# ============================================
+
+@app.get("/api/subscription-plans")
+async def get_subscription_plans():
+    """
+    Récupère tous les plans d'abonnement disponibles
+    Public endpoint - pas besoin d'authentification
+    """
+    plans = {
+        "merchants": [
+            {
+                "id": "free",
+                "name": "Free",
+                "price": 0,
+                "billing_period": "month",
+                "features": [
+                    "1 produit",
+                    "10 leads/mois",
+                    "Support email",
+                    "Statistiques basiques"
+                ],
+                "limits": {
+                    "products": 1,
+                    "leads_per_month": 10,
+                    "campaigns": 1
+                }
+            },
+            {
+                "id": "starter",
+                "name": "Starter",
+                "price": 29,
+                "billing_period": "month",
+                "features": [
+                    "10 produits",
+                    "100 leads/mois",
+                    "Support prioritaire",
+                    "Analytics avancés",
+                    "API access"
+                ],
+                "limits": {
+                    "products": 10,
+                    "leads_per_month": 100,
+                    "campaigns": 5
+                },
+                "recommended": True
+            },
+            {
+                "id": "professional",
+                "name": "Professional",
+                "price": 99,
+                "billing_period": "month",
+                "features": [
+                    "Produits illimités",
+                    "500 leads/mois",
+                    "Support 24/7",
+                    "IA Marketing",
+                    "Domaine personnalisé",
+                    "Export de données"
+                ],
+                "limits": {
+                    "products": -1,
+                    "leads_per_month": 500,
+                    "campaigns": 20
+                }
+            },
+            {
+                "id": "premium",
+                "name": "Premium",
+                "price": 299,
+                "billing_period": "month",
+                "features": [
+                    "Tout illimité",
+                    "Leads illimités",
+                    "Account manager dédié",
+                    "Intégrations custom",
+                    "White label",
+                    "SLA garantie"
+                ],
+                "limits": {
+                    "products": -1,
+                    "leads_per_month": -1,
+                    "campaigns": -1
+                }
+            }
+        ],
+        "influencers": [
+            {
+                "id": "free",
+                "name": "Free",
+                "price": 0,
+                "billing_period": "month",
+                "features": [
+                    "3 liens affiliés",
+                    "Statistiques basiques",
+                    "Paiement mensuel"
+                ],
+                "limits": {
+                    "affiliate_links": 3,
+                    "campaigns": 1
+                }
+            },
+            {
+                "id": "starter",
+                "name": "Starter",
+                "price": 19,
+                "billing_period": "month",
+                "features": [
+                    "20 liens affiliés",
+                    "Analytics détaillés",
+                    "Paiement bihebdomadaire",
+                    "Outils marketing"
+                ],
+                "limits": {
+                    "affiliate_links": 20,
+                    "campaigns": 10
+                },
+                "recommended": True
+            },
+            {
+                "id": "professional",
+                "name": "Professional",
+                "price": 49,
+                "billing_period": "month",
+                "features": [
+                    "Liens illimités",
+                    "IA Content Creator",
+                    "Paiement hebdomadaire",
+                    "Priorité marketplace",
+                    "Support prioritaire"
+                ],
+                "limits": {
+                    "affiliate_links": -1,
+                    "campaigns": -1
+                }
+            }
+        ]
+    }
+    
+    return plans
+
+
+@app.get("/api/subscriptions/usage")
+async def get_subscription_usage(payload: dict = Depends(verify_token)):
+    """
+    Récupère l'utilisation actuelle du plan d'abonnement de l'utilisateur
+    """
+    try:
+        user = get_user_by_id(payload["sub"])
+        if not user:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+        
+        plan = user.get("subscription_plan", "free")
+        role = user.get("role")
+        
+        # Calculer l'utilisation selon le rôle
+        if role == "merchant":
+            # Compter les produits
+            products_count = supabase.table("products").select("id", count="exact").eq("merchant_id", user["id"]).execute().count or 0
+            
+            # Compter les leads ce mois
+            from datetime import datetime
+            current_month = datetime.now().strftime("%Y-%m")
+            leads_count = supabase.table("sales").select("id", count="exact").eq("merchant_id", user["id"]).gte("created_at", f"{current_month}-01").execute().count or 0
+            
+            # Compter les campagnes
+            campaigns_count = supabase.table("campaigns").select("id", count="exact").eq("merchant_id", user["id"]).execute().count or 0
+            
+            # Limites selon le plan
+            limits = {
+                "free": {"products": 1, "leads_per_month": 10, "campaigns": 1},
+                "starter": {"products": 10, "leads_per_month": 100, "campaigns": 5},
+                "professional": {"products": -1, "leads_per_month": 500, "campaigns": 20},
+                "premium": {"products": -1, "leads_per_month": -1, "campaigns": -1}
+            }
+            
+            plan_limits = limits.get(plan, limits["free"])
+            
+            return {
+                "plan": plan,
+                "usage": {
+                    "products": products_count,
+                    "leads_this_month": leads_count,
+                    "campaigns": campaigns_count
+                },
+                "limits": plan_limits,
+                "usage_percentage": {
+                    "products": (products_count / plan_limits["products"] * 100) if plan_limits["products"] > 0 else 0,
+                    "leads": (leads_count / plan_limits["leads_per_month"] * 100) if plan_limits["leads_per_month"] > 0 else 0,
+                    "campaigns": (campaigns_count / plan_limits["campaigns"] * 100) if plan_limits["campaigns"] > 0 else 0
+                }
+            }
+        
+        elif role == "influencer":
+            # Compter les liens affiliés
+            links_count = supabase.table("trackable_links").select("id", count="exact").eq("influencer_id", user["id"]).execute().count or 0
+            
+            # Compter les campagnes actives
+            campaigns_count = 0  # À implémenter selon votre logique
+            
+            limits = {
+                "free": {"affiliate_links": 3, "campaigns": 1},
+                "starter": {"affiliate_links": 20, "campaigns": 10},
+                "professional": {"affiliate_links": -1, "campaigns": -1}
+            }
+            
+            plan_limits = limits.get(plan, limits["free"])
+            
+            return {
+                "plan": plan,
+                "usage": {
+                    "affiliate_links": links_count,
+                    "campaigns": campaigns_count
+                },
+                "limits": plan_limits,
+                "usage_percentage": {
+                    "links": (links_count / plan_limits["affiliate_links"] * 100) if plan_limits["affiliate_links"] > 0 else 0,
+                    "campaigns": (campaigns_count / plan_limits["campaigns"] * 100) if plan_limits["campaigns"] > 0 else 0
+                }
+            }
+        
+        else:
+            # Admin ou autres rôles
+            return {
+                "plan": "admin",
+                "usage": {},
+                "limits": {},
+                "usage_percentage": {}
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting subscription usage: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================
 # SYSTÈME LEADS - MARKETPLACE SERVICES
 # ============================================
 # Import des endpoints LEADS
@@ -3765,6 +4054,183 @@ from endpoints.leads_endpoints import add_leads_endpoints
 
 # Endpoints LEADS - Intégration via router
 add_leads_endpoints(app, verify_token)
+
+
+# ============================================
+# TOP 5 FEATURES - ANALYTICS PRO API
+# ============================================
+from services.advanced_analytics_service import AdvancedAnalyticsService
+from services.gamification_service import GamificationService
+from services.influencer_matching_service import InfluencerMatchingService
+
+analytics_service = AdvancedAnalyticsService()
+gamification_service = GamificationService()
+matching_service = InfluencerMatchingService()
+
+# Analytics Pro - Marchands
+@app.get("/api/analytics/merchant/{merchant_id}")
+async def get_merchant_analytics_pro(
+    merchant_id: str,
+    period: str = Query("month", regex="^(week|month|quarter|year)$"),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Analytics Pro pour marchands avec IA insights"""
+    try:
+        user = verify_token(credentials.credentials)
+        
+        # Vérifier que l'utilisateur est bien le marchand ou admin
+        if user['role'] not in ['merchant', 'admin']:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        analytics = await analytics_service.get_merchant_analytics(
+            merchant_id=merchant_id,
+            period=period
+        )
+        return analytics
+    except Exception as e:
+        logger.error(f"Error fetching merchant analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Analytics Pro - Influenceurs
+@app.get("/api/analytics/influencer/{influencer_id}")
+async def get_influencer_analytics_pro(
+    influencer_id: str,
+    period: str = Query("month", regex="^(week|month|quarter|year)$"),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Analytics Pro pour influenceurs avec IA insights"""
+    try:
+        user = verify_token(credentials.credentials)
+        
+        if user['role'] not in ['influencer', 'admin']:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        analytics = await analytics_service.get_influencer_analytics(
+            influencer_id=influencer_id,
+            period=period
+        )
+        return analytics
+    except Exception as e:
+        logger.error(f"Error fetching influencer analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Analytics Pro - Commerciaux
+@app.get("/api/analytics/sales-rep/{sales_rep_id}")
+async def get_sales_rep_analytics_pro(
+    sales_rep_id: str,
+    period: str = Query("month", regex="^(week|month|quarter|year)$"),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Analytics Pro pour commerciaux avec IA insights"""
+    try:
+        user = verify_token(credentials.credentials)
+        
+        if user['role'] not in ['commercial', 'admin']:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        analytics = await analytics_service.get_sales_rep_analytics(
+            sales_rep_id=sales_rep_id,
+            period=period
+        )
+        return analytics
+    except Exception as e:
+        logger.error(f"Error fetching sales rep analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Time Series Data pour charts
+@app.get("/api/analytics/merchant/{merchant_id}/time-series")
+async def get_merchant_time_series(
+    merchant_id: str,
+    period: str = Query("month", regex="^(week|month|quarter|year)$"),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Time series data pour charts Analytics Pro"""
+    try:
+        user = verify_token(credentials.credentials)
+        time_series = await analytics_service.get_merchant_time_series(merchant_id, period)
+        return time_series
+    except Exception as e:
+        logger.error(f"Error fetching time series: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Gamification API
+@app.get("/api/gamification/{user_id}")
+async def get_gamification_status(
+    user_id: str,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Gamification status: points, niveau, badges, missions"""
+    try:
+        user = verify_token(credentials.credentials)
+        
+        # Récupérer infos utilisateur
+        user_data = get_user_by_id(user_id)
+        if not user_data:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        gamif_data = await gamification_service.get_user_gamification(
+            user_id=user_id,
+            user_type=user_data['role']
+        )
+        return gamif_data
+    except Exception as e:
+        logger.error(f"Error fetching gamification: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Influencer Matching API
+@app.get("/api/matching/get-recommendations")
+async def get_matching_recommendations(
+    merchant_id: str = Query(...),
+    limit: int = Query(10, le=50),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Get influencer recommendations pour matching Tinder"""
+    try:
+        user = verify_token(credentials.credentials)
+        
+        if user['role'] not in ['merchant', 'admin']:
+            raise HTTPException(status_code=403, detail="Merchants only")
+        
+        recommendations = await matching_service.get_recommendations(
+            merchant_id=merchant_id,
+            limit=limit
+        )
+        return {"recommendations": recommendations}
+    except Exception as e:
+        logger.error(f"Error fetching recommendations: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class SwipeAction(BaseModel):
+    merchant_id: str
+    influencer_id: str
+    action: str  # 'like', 'pass', 'super_like'
+
+
+@app.post("/api/matching/swipe")
+async def record_swipe(
+    swipe: SwipeAction,
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """Record swipe action et détecter matches"""
+    try:
+        user = verify_token(credentials.credentials)
+        
+        result = await matching_service.record_swipe(
+            merchant_id=swipe.merchant_id,
+            influencer_id=swipe.influencer_id,
+            action=swipe.action
+        )
+        return result
+    except Exception as e:
+        logger.error(f"Error recording swipe: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn

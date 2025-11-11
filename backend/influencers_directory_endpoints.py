@@ -408,7 +408,7 @@ async def search_influencers(
     accepts_sponsored: Optional[bool] = Query(None, description="Accepts sponsored posts"),
     featured_only: bool = Query(False, description="Featured influencers only"),
     verified_only: bool = Query(False, description="Verified influencers only"),
-    sort_by: str = Query("total_followers", description="Sort field"),
+    sort_by: str = Query("followers_count", description="Sort field"),
     sort_order: str = Query("desc", description="Sort order: asc or desc"),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0)
@@ -430,57 +430,31 @@ async def search_influencers(
     - verified_only: Profils vérifiés uniquement
 
     Tri:
-    - sort_by: total_followers, average_engagement_rate, created_at, view_count
+    - sort_by: followers_count, engagement_rate, created_at
     - sort_order: asc, desc
     """
     try:
-        query = supabase.from_("users").select("*").eq("role", "influencer")
+        # Récupérer les influenceurs depuis la table users
+        query = supabase.from_("users").select("*").eq("role", "influencer").eq("status", "active")
 
-        # Recherche full-text
-        if search:
-            query = query.text_search("search_vector", search, config="french")
-
-        # Filtres
-        if niche:
-            query = query.contains("niches", [niche])
-
-        # Filtre par plateforme
-        if platform:
-            platform_lower = platform.lower()
-            if platform_lower == "instagram":
-                query = query.gt("instagram_followers", 0)
-            elif platform_lower == "facebook":
-                query = query.gt("facebook_followers", 0)
-            elif platform_lower == "tiktok":
-                query = query.gt("tiktok_followers", 0)
-            elif platform_lower == "youtube":
-                query = query.gt("youtube_subscribers", 0)
-
+        # Filtres basiques qui existent dans la table users
         if city:
-            query = safe_ilike(query, "city", city, wildcard="both")
+            query = query.ilike("city", f"%{city}%")
 
         if min_followers is not None:
-            query = query.gte("total_followers", min_followers)
+            query = query.gte("followers_count", min_followers)
 
         if max_followers is not None:
-            query = query.lte("total_followers", max_followers)
+            query = query.lte("followers_count", max_followers)
 
         if min_engagement is not None:
-            query = query.gte("average_engagement_rate", min_engagement)
+            query = query.gte("engagement_rate", min_engagement)
 
-        if accepts_affiliate is not None:
-            query = query.eq("accepts_affiliate", accepts_affiliate)
-
-        if accepts_sponsored is not None:
-            query = query.eq("accepts_sponsored", accepts_sponsored)
-
-        if featured_only:
-            query = query.eq("featured", True)
-
-        if verified_only:
-            query = query.eq("verified", True)
-
-        # Tri
+        # Tri - utiliser seulement les colonnes qui existent
+        valid_sort_fields = ["followers_count", "engagement_rate", "created_at", "total_earned"]
+        if sort_by not in valid_sort_fields:
+            sort_by = "followers_count"
+            
         desc = (sort_order.lower() == "desc")
         query = query.order(sort_by, desc=desc)
 
@@ -488,15 +462,33 @@ async def search_influencers(
         query = query.range(offset, offset + limit - 1)
 
         response = query.execute()
+        
+        # Formater les données
+        influencers = []
+        for user in response.data:
+            influencers.append({
+                "id": user.get("id"),
+                "email": user.get("email"),
+                "username": user.get("username") or user.get("company_name", ""),
+                "followers_count": user.get("followers_count", 0),
+                "engagement_rate": user.get("engagement_rate", 0.0),
+                "total_earned": user.get("total_earned", 0.0),
+                "category": user.get("category", "General"),
+                "city": user.get("city"),
+                "country": user.get("country"),
+                "profile_picture_url": user.get("profile_picture_url"),
+                "status": user.get("status")
+            })
 
         return {
-            "influencers": response.data,
-            "count": len(response.data),
+            "influencers": influencers,
+            "count": len(influencers),
             "limit": limit,
             "offset": offset
         }
 
     except Exception as e:
+        print(f"Error searching influencers: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Error searching influencers: {str(e)}"

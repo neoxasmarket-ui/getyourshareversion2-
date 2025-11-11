@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import Card from '../../components/common/Card';
 import Table from '../../components/common/Table';
@@ -8,6 +9,7 @@ import { formatCurrency, formatDate } from '../../utils/helpers';
 import { Plus, Search } from 'lucide-react';
 
 const AdvertisersList = () => {
+  const navigate = useNavigate();
   const [advertisers, setAdvertisers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -83,7 +85,7 @@ const AdvertisersList = () => {
           <h1 className="text-3xl font-bold text-gray-900">Annonceurs</h1>
           <p className="text-gray-600 mt-2">Gérez vos annonceurs</p>
         </div>
-        <Button>
+        <Button onClick={() => navigate('/advertisers/registrations')}>
           <Plus size={20} className="mr-2" />
           Nouvel Annonceur
         </Button>

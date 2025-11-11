@@ -6,101 +6,110 @@ Mot de passe pour tous les comptes: **Test123!**
 
 ---
 
-## 👔 Comptes Merchants (4 comptes)
+## �‍💼 Compte Administrateur
 
-### 1. Merchant Free (Plan Gratuit)
-- **Email**: `merchant_free@test.com`
+### Admin - Accès Total
+- **Email**: `admin@getyourshare.com`
 - **Password**: `Test123!`
-- **Plan**: Free
-- **Frais mensuels**: 0 MAD
-- **Commission**: 5%
-
-### 2. Merchant Starter
-- **Email**: `merchant_starter@test.com`
-- **Password**: `Test123!`
-- **Plan**: Starter
-- **Frais mensuels**: 299 MAD
-- **Commission**: 4%
-- **Ventes totales**: 15,000 MAD
-
-### 3. Merchant Pro
-- **Email**: `merchant_pro@test.com`
-- **Password**: `Test123!`
-- **Plan**: Pro
-- **Frais mensuels**: 799 MAD
-- **Commission**: 3%
-- **Ventes totales**: 45,000 MAD
-
-### 4. Merchant Enterprise
-- **Email**: `merchant_enterprise@test.com`
-- **Password**: `Test123!`
-- **Plan**: Enterprise
-- **Frais mensuels**: 1999 MAD
-- **Commission**: 2%
-- **Ventes totales**: 150,000 MAD
+- **Role**: Admin
+- **Accès**: Complet à toutes les fonctionnalités
 
 ---
 
-## 📱 Comptes Influencers (3 comptes)
+## 🌟 Comptes Influenceurs (3 types d'abonnement)
 
-### 1. Influencer Starter (Nano)
-- **Email**: `influencer_starter@test.com`
+### 1. Hassan Oudrhiri - STARTER
+- **Email**: `hassan.oudrhiri@getyourshare.com`
 - **Password**: `Test123!`
-- **Plan**: Starter
-- **Frais mensuels**: 0 MAD
-- **Commission**: 5%
-- **Audience**: 5,000 followers
-- **Engagement**: 3.5%
-- **Revenus**: 500 MAD
+- **Plan**: STARTER
+- **Followers**: 67,000
+- **Niche**: Food & Cuisine
 
-### 2. Influencer Pro (Micro)
-- **Email**: `influencer_pro@test.com`
+### 2. Sarah Benali - PRO
+- **Email**: `sarah.benali@getyourshare.com`
 - **Password**: `Test123!`
-- **Plan**: Pro
-- **Frais mensuels**: 99 MAD
-- **Commission**: 3%
-- **Audience**: 25,000 followers
-- **Engagement**: 5.2%
-- **Revenus**: 3,500 MAD
+- **Plan**: PRO
+- **Followers**: 125,000
+- **Niche**: Lifestyle
 
-### 3. Influencer Elite (Macro)
-- **Email**: `influencer_elite@test.com`
+### 3. Karim Benjelloun ⭐ - ENTERPRISE
+- **Email**: `karim.benjelloun@getyourshare.com`
 - **Password**: `Test123!`
-- **Plan**: Pro Elite
-- **Frais mensuels**: 299 MAD
-- **Commission**: 2%
-- **Audience**: 100,000 followers
-- **Engagement**: 6.8%
-- **Revenus**: 12,000 MAD
+- **Plan**: ENTERPRISE
+- **Followers**: 285,000
+- **Niche**: Tech & Gaming
+- **Verified**: ✅
+
+---
+
+## 🏪 Comptes Marchands (3 types d'abonnement)
+
+### 1. Boutique Maroc - STARTER
+- **Email**: `boutique.maroc@getyourshare.com`
+- **Password**: `Test123!`
+- **Plan**: STARTER
+- **Business**: Artisanat traditionnel
+
+### 2. Luxury Crafts - PRO
+- **Email**: `luxury.crafts@getyourshare.com`
+- **Password**: `Test123!`
+- **Plan**: PRO
+- **Business**: Artisanat Premium
+
+### 3. ElectroMaroc ⭐ - ENTERPRISE
+- **Email**: `electromaroc@getyourshare.com`
+- **Password**: `Test123!`
+- **Plan**: ENTERPRISE
+- **Business**: Électronique & High-Tech
+- **Verified**: ✅
+
+---
+
+## 💼 Compte Commercial
+
+### Sofia Chakir - Business Development
+- **Email**: `sofia.chakir@getyourshare.com`
+- **Password**: `Test123!`
+- **Role**: Commercial
+- **Plan**: ENTERPRISE
 
 ---
 
 ## 🚀 Connexion Rapide (Copier-Coller)
 
-### Merchants
+### Admin
 ```
-merchant_free@test.com
-Test123!
-
-merchant_starter@test.com
-Test123!
-
-merchant_pro@test.com
-Test123!
-
-merchant_enterprise@test.com
+admin@getyourshare.com
 Test123!
 ```
 
-### Influencers
+### Influenceurs
 ```
-influencer_starter@test.com
+hassan.oudrhiri@getyourshare.com
 Test123!
 
-influencer_pro@test.com
+sarah.benali@getyourshare.com
 Test123!
 
-influencer_elite@test.com
+karim.benjelloun@getyourshare.com
+Test123!
+```
+
+### Marchands
+```
+boutique.maroc@getyourshare.com
+Test123!
+
+luxury.crafts@getyourshare.com
+Test123!
+
+electromaroc@getyourshare.com
+Test123!
+```
+
+### Commercial
+```
+sofia.chakir@getyourshare.com
 Test123!
 ```
 
@@ -108,50 +117,63 @@ Test123!
 
 ## 📊 Tableau Récapitulatif
 
-| Email | Type | Plan | Frais/mois | Commission |
-|-------|------|------|------------|------------|
-| merchant_free@test.com | Merchant | Free | 0 MAD | 5% |
-| merchant_starter@test.com | Merchant | Starter | 299 MAD | 4% |
-| merchant_pro@test.com | Merchant | Pro | 799 MAD | 3% |
-| merchant_enterprise@test.com | Merchant | Enterprise | 1999 MAD | 2% |
-| influencer_starter@test.com | Influencer | Starter | 0 MAD | 5% |
-| influencer_pro@test.com | Influencer | Pro | 99 MAD | 3% |
-| influencer_elite@test.com | Influencer | Elite | 299 MAD | 2% |
+| Email | Role | Plan | Description |
+|-------|------|------|-------------|
+| admin@getyourshare.com | Admin | ENTERPRISE | Accès Total |
+| hassan.oudrhiri@getyourshare.com | Influencer | STARTER | 67K • Food |
+| sarah.benali@getyourshare.com | Influencer | PRO | 125K • Lifestyle |
+| karim.benjelloun@getyourshare.com | Influencer | ENTERPRISE | 285K • Tech ⭐ |
+| boutique.maroc@getyourshare.com | Merchant | STARTER | Artisanat |
+| luxury.crafts@getyourshare.com | Merchant | PRO | Premium |
+| electromaroc@getyourshare.com | Merchant | ENTERPRISE | High-Tech ⭐ |
+| sofia.chakir@getyourshare.com | Commercial | ENTERPRISE | Business Dev |
 
 ---
 
 ## 🎯 Scénarios de Test Recommandés
 
-### Test 1: Vérifier les Dashboards
-1. Connectez-vous avec `merchant_free@test.com`
-2. Vérifiez que la carte d'abonnement affiche "Plan Free"
-3. Testez le bouton "Améliorer mon Plan"
+### Test 1: Dashboard Influenceur
+1. Connectez-vous avec `hassan.oudrhiri@getyourshare.com`
+2. Vérifiez le plan STARTER et les 67K followers
+3. Testez les fonctionnalités d'affiliation
 
-### Test 2: Comparer les Plans
-1. Connectez-vous avec différents comptes
-2. Observez les différences de commissions
-3. Vérifiez les limites de chaque plan
+### Test 2: Dashboard Marchand
+1. Connectez-vous avec `luxury.crafts@getyourshare.com`
+2. Vérifiez le plan PRO
+3. Testez la création de campagnes
 
-### Test 3: Test Influencer
-1. Connectez-vous avec `influencer_elite@test.com`
-2. Vérifiez les stats (100K followers, 6.8% engagement)
-3. Testez les fonctionnalités pro
+### Test 3: Comptes ENTERPRISE
+1. Connectez-vous avec `karim.benjelloun@getyourshare.com` (Influencer)
+2. Puis `electromaroc@getyourshare.com` (Merchant)
+3. Comparez les fonctionnalités avancées
+
+### Test 4: Admin
+1. Connectez-vous avec `admin@getyourshare.com`
+2. Accédez à tous les dashboards
+3. Gérez les utilisateurs et les campagnes
 
 ---
 
 ## ⚠️ Notes Importantes
 
 - Tous les comptes utilisent le même mot de passe: `Test123!`
-- Les données sont des données de test (factices)
 - Ces comptes sont pour le développement/test uniquement
+- Les données des profils sont réalistes (followers, niches, etc.)
 - Ne pas utiliser en production
 
 ---
 
-## 🔄 Pour Réinitialiser les Comptes
+## ✅ État des Comptes
 
-Si vous devez recréer les comptes:
+**Dernière vérification: 10 novembre 2025**
 
-1. Supprimez les utilisateurs dans Supabase Auth Dashboard
-2. Exécutez `backend/database/CREATE_ALL_TEST_ACCOUNTS.sql`
-3. Tous les profils seront recréés avec les mêmes données
+- ✅ Admin: `admin@getyourshare.com` - Actif
+- ✅ Hassan Oudrhiri: `hassan.oudrhiri@getyourshare.com` - Actif
+- ✅ Sarah Benali: `sarah.benali@getyourshare.com` - Actif
+- ✅ Karim Benjelloun: `karim.benjelloun@getyourshare.com` - Actif
+- ✅ Boutique Maroc: `boutique.maroc@getyourshare.com` - Actif
+- ✅ Luxury Crafts: `luxury.crafts@getyourshare.com` - Actif
+- ✅ ElectroMaroc: `electromaroc@getyourshare.com` - Actif (email corrigé)
+- ✅ Sofia Chakir: `sofia.chakir@getyourshare.com` - Actif
+
+**Tous les 8 comptes sont opérationnels et validés.**

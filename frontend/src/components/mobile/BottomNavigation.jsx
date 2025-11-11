@@ -142,7 +142,11 @@ const BottomNavigation = ({ userType }) => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+    <nav 
+      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50"
+      role="navigation"
+      aria-label="Navigation mobile principale"
+    >
       <div className="flex items-center justify-around px-2 py-2 max-w-screen-sm mx-auto">
         {navItems.map((item) => (
           <NavItem
@@ -165,13 +169,15 @@ const NavItem = ({ item, isActive, onClick }) => {
 
   if (item.highlighted) {
     // Center floating action button
+    // ✅ FIX ACCESSIBILITÉ P1: Touch target 48x48px minimum + aria-label
     return (
       <button
         onClick={onClick}
-        className="relative -mt-8 active:scale-95 transition"
+        aria-label={item.label}
+        className="relative -mt-8 active:scale-95 transition min-w-[48px] min-h-[48px]"
       >
         <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-xl">
-          <Icon className="h-7 w-7 text-white" />
+          <Icon className="h-7 w-7 text-white" aria-hidden="true" />
         </div>
       </button>
     );
@@ -180,18 +186,23 @@ const NavItem = ({ item, isActive, onClick }) => {
   return (
     <button
       onClick={onClick}
-      className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition ${
+      aria-label={item.label}
+      aria-current={isActive ? 'page' : undefined}
+      className={`flex flex-col items-center justify-center py-2 px-3 rounded-xl transition min-w-[48px] min-h-[48px] ${
         isActive
           ? 'text-blue-600'
           : 'text-gray-500 hover:text-gray-700 active:bg-gray-100'
       }`}
     >
-      <Icon className={`h-6 w-6 mb-1 ${isActive ? 'stroke-2' : 'stroke-1.5'}`} />
+      <Icon 
+        className={`h-6 w-6 mb-1 ${isActive ? 'stroke-2' : 'stroke-1.5'}`} 
+        aria-hidden="true"
+      />
       <span className={`text-xs font-medium ${isActive ? 'font-semibold' : ''}`}>
         {item.label}
       </span>
       {isActive && (
-        <div className="absolute bottom-0 w-1 h-1 bg-blue-600 rounded-full"></div>
+        <div className="absolute bottom-0 w-1 h-1 bg-blue-600 rounded-full" aria-hidden="true"></div>
       )}
     </button>
   );

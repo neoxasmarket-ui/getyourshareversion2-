@@ -7,6 +7,7 @@ import StatCard from '../../components/common/StatCard';
 import Card from '../../components/common/Card';
 import SkeletonDashboard from '../../components/common/SkeletonLoader';
 import EmptyState from '../../components/common/EmptyState';
+import GamificationWidget from '../../components/GamificationWidget';
 import {
   DollarSign, ShoppingBag, Users, TrendingUp,
   Package, Eye, Target, Award, Plus, Search, FileText, Settings, RefreshCw,
@@ -210,6 +211,22 @@ const MerchantDashboard = () => {
             <RefreshCw size={18} />
           </button>
           <button
+            onClick={() => navigate('/analytics-pro')}
+            className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 transition flex items-center gap-2"
+            title="Analytics Pro avec IA"
+          >
+            <Award size={18} />
+            Analytics Pro
+          </button>
+          <button
+            onClick={() => navigate('/matching')}
+            className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:from-pink-600 hover:to-rose-600 transition flex items-center gap-2"
+            title="Matching Influenceurs Tinder"
+          >
+            <Target size={18} />
+            Matching
+          </button>
+          <button
             onClick={() => navigate('/campaigns/create')}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
           >
@@ -351,6 +368,9 @@ const MerchantDashboard = () => {
           </div>
         </Card>
       )}
+
+      {/* Gamification Widget */}
+      <GamificationWidget userId={user?.id} userType="merchant" />
 
       {/* Collaboration Requests Section */}
       {sentRequests && sentRequests.length > 0 && (
