@@ -120,12 +120,11 @@ async def get_marketplace_products(
         # Select relevant fields including merchant info
         query = supabase.table('products').select(
             '*,'
-            'merchant:merchants!products_merchant_id_fkey(id,business_name,business_logo)',
+            'merchant:merchants!products_merchant_id_fkey(id,company_name,logo_url)',
             count='exact'
         )
 
-        # Filtre: produits actifs uniquement
-        query = query.eq('status', 'active')
+        # Pas de filtre status car la colonne n'existe pas
 
         # Filtre: catégorie
         if category:

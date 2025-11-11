@@ -434,7 +434,7 @@ async def search_influencers(
     - sort_order: asc, desc
     """
     try:
-        query = supabase.from_("v_influencer_profiles_public").select("*")
+        query = supabase.from_("users").select("*").eq("role", "influencer")
 
         # Recherche full-text
         if search:
@@ -480,9 +480,6 @@ async def search_influencers(
         if verified_only:
             query = query.eq("verified", True)
 
-        # Toujours filtrer par disponibilité et visibilité
-        query = query.eq("is_available", True)
-
         # Tri
         desc = (sort_order.lower() == "desc")
         query = query.order(sort_by, desc=desc)
@@ -513,9 +510,10 @@ async def get_influencer_profile(user_id: str):
     Incrémente le compteur de vues
     """
     try:
-        response = supabase.from_("v_influencer_profiles_public") \
+        response = supabase.from_("users") \
             .select("*") \
-            .eq("user_id", user_id) \
+            .eq("id", user_id) \
+            .eq("role", "influencer") \
             .single() \
             .execute()
 

@@ -153,21 +153,12 @@ def update_user_last_login(user_id: str):
 
 
 def get_all_merchants() -> List[Dict]:
-    """Récupère tous les merchants avec leurs données utilisateur"""
+    """Récupère tous les merchants depuis la table users"""
     try:
         result = (
-            supabase.table("merchants")
-            .select(
-                """
-            *,
-            users:user_id (
-                id,
-                email,
-                phone,
-                last_login
-            )
-        """
-            )
+            supabase.table("users")
+            .select("*")
+            .eq("role", "merchant")
             .execute()
         )
         return result.data
@@ -216,20 +207,12 @@ def get_merchant_by_user_id(user_id: str) -> Optional[Dict]:
 
 
 def get_all_influencers() -> List[Dict]:
-    """Récupère tous les influencers"""
+    """Récupère tous les influencers depuis la table users"""
     try:
         result = (
-            supabase.table("influencers")
-            .select(
-                """
-            *,
-            users:user_id (
-                id,
-                email,
-                phone
-            )
-        """
-            )
+            supabase.table("users")
+            .select("*")
+            .eq("role", "influencer")
             .execute()
         )
         return result.data
@@ -281,15 +264,8 @@ def get_all_products(
 ) -> List[Dict]:
     """Récupère tous les produits avec filtres optionnels"""
     try:
-        query = supabase.table("products").select(
-            """
-            *,
-            merchants:merchant_id (
-                id,
-                company_name
-            )
-        """
-        )
+        # Simple query sans jointure complexe
+        query = supabase.table("products").select("*")
 
         if category:
             query = query.eq("category", category)
@@ -297,7 +273,24 @@ def get_all_products(
             query = query.eq("merchant_id", merchant_id)
 
         result = query.execute()
-        return result.data
+        
+        # Ajouter les infos merchant manuellement si besoin
+        products = result.data if result.data else []
+        
+        # Pour chaque produit, récupérer le nom du merchant
+        for product in products:
+            if product.get("merchant_id"):
+                try:
+                    user_result = supabase.table("users").select("company_name, email").eq("id", product["merchant_id"]).single().execute()
+                    if user_result.data:
+                        product["merchant"] = {
+                            "company_name": user_result.data.get("company_name"),
+                            "email": user_result.data.get("email")
+                        }
+                except:
+                    pass
+        
+        return products
     except Exception as e:
         print(f"Error getting products: {e}")
         return []
@@ -306,22 +299,87 @@ def get_all_products(
 def get_product_by_id(product_id: str) -> Optional[Dict]:
     """Récupère un produit par ID"""
     try:
-        result = (
-            supabase.table("products")
-            .select(
-                """
-            *,
-            merchants:merchant_id (
-                company_name
-            )
-        """
-            )
-            .eq("id", product_id)
-            .execute()
-        )
-        return result.data[0] if result.data else None
+        result = supabase.table("products").select("*").eq("id", product_id).execute()
+        
+        if result.data:
+            product = result.data[0]
+            # Ajouter les infos merchant
+            if product.get("merchant_id"):
+                try:
+                    user_result = supabase.table("users").select("company_name, email").eq("id", product["merchant_id"]).single().execute()
+                    if user_result.data:
+                        product["merchant"] = {
+                            "company_name": user_result.data.get("company_name"),
+                            "email": user_result.data.get("email")
+                        }
+                except:
+                    pass
+            return product
+        return None
     except Exception as e:
         print(f"Error getting product: {e}")
+        return None
+
+
+# ==================== SERVICES ====================
+
+def get_all_services(
+    category: Optional[str] = None, merchant_id: Optional[str] = None
+) -> List[Dict]:
+    """Récupère tous les services avec filtres optionnels"""
+    try:
+        query = supabase.table("services").select("*")
+
+        if category:
+            query = query.eq("category", category)
+        if merchant_id:
+            query = query.eq("merchant_id", merchant_id)
+
+        result = query.execute()
+        
+        services = result.data if result.data else []
+        
+        # Pour chaque service, récupérer les infos du merchant
+        for service in services:
+            if service.get("merchant_id"):
+                try:
+                    user_result = supabase.table("users").select("company_name, email").eq("id", service["merchant_id"]).single().execute()
+                    if user_result.data:
+                        service["merchant"] = {
+                            "company_name": user_result.data.get("company_name"),
+                            "email": user_result.data.get("email")
+                        }
+                except:
+                    pass
+        
+        return services
+    except Exception as e:
+        print(f"Error getting services: {e}")
+        return []
+
+
+def get_service_by_id(service_id: str) -> Optional[Dict]:
+    """Récupère un service par ID"""
+    try:
+        result = supabase.table("services").select("*").eq("id", service_id).execute()
+        
+        if result.data:
+            service = result.data[0]
+            # Ajouter les infos merchant
+            if service.get("merchant_id"):
+                try:
+                    user_result = supabase.table("users").select("company_name, email").eq("id", service["merchant_id"]).single().execute()
+                    if user_result.data:
+                        service["merchant"] = {
+                            "company_name": user_result.data.get("company_name"),
+                            "email": user_result.data.get("email")
+                        }
+                except:
+                    pass
+            return service
+        return None
+    except Exception as e:
+        print(f"Error getting service: {e}")
         return None
 
 
@@ -447,25 +505,35 @@ def get_dashboard_stats(role: str, user_id: str) -> Dict:
     """Récupère les statistiques pour le dashboard selon le rôle"""
     try:
         if role == "admin":
-            # Stats admin
-            users_count = supabase.table("users").select("id", count="exact").execute().count
+            # Stats admin depuis la table users
+            users_count = supabase.table("users").select("id", count="exact").execute().count or 0
+            
+            # Compter les merchants
             merchants_count = (
-                supabase.table("merchants").select("id", count="exact").execute().count
+                supabase.table("users").select("id", count="exact").eq("role", "merchant").execute().count or 0
             )
+            
+            # Compter les influencers
             influencers_count = (
-                supabase.table("influencers").select("id", count="exact").execute().count
+                supabase.table("users").select("id", count="exact").eq("role", "influencer").execute().count or 0
             )
-            products_count = supabase.table("products").select("id", count="exact").execute().count
+            
+            # Compter les produits
+            products_count = supabase.table("products").select("id", count="exact").execute().count or 0
+
+            # Compter les services
+            services_count = supabase.table("services").select("id", count="exact").execute().count or 0
 
             # Revenue total (sum des sales)
             sales = supabase.table("sales").select("amount").eq("status", "completed").execute()
-            total_revenue = sum([s["amount"] for s in sales.data]) if sales.data else 0
+            total_revenue = sum([float(s.get("amount", 0)) for s in sales.data]) if sales.data else 0
 
             return {
                 "total_users": users_count,
                 "total_merchants": merchants_count,
                 "total_influencers": influencers_count,
                 "total_products": products_count,
+                "total_services": services_count,
                 "total_revenue": total_revenue,
             }
 

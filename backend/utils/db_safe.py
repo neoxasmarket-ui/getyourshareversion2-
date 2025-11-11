@@ -30,7 +30,7 @@ def sanitize_like_pattern(value: str) -> str:
     Échappe les caractères spéciaux SQL:
     - % (wildcard multi-caractères)
     - _ (wildcard single-caractère)
-    - \ (caractère d'échappement)
+    - \\ (caractère d'échappement)
 
     Args:
         value: La valeur à sanitiser

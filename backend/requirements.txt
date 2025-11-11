@@ -27,7 +27,7 @@ idna==3.11
 iniconfig==2.3.0
 isort==7.0.0
 jmespath==1.0.1
-jq==1.10.0
+# jq==1.10.0  # Nécessite compilation C++, désactivé temporairement
 markdown-it-py==4.0.0
 mccabe==0.7.0
 mdurl==0.1.2
@@ -89,10 +89,10 @@ watchfiles==1.1.1
 websockets==15.0.1
 yarl==1.22.0
 
-# Production Server
+# Production Server  
 gunicorn==23.0.0
-gevent==24.11.1
-aiohttp==3.12.14
+# gevent==24.11.1  # Nécessite compilation C++, désactivé temporairement
+# aiohttp==3.12.14  # Nécessite compilation C++, remplacé par httpx
 aiohttp-cors==0.7.0
 
 # Production-Grade Monitoring & Security
@@ -105,7 +105,8 @@ stripe==11.2.0
 # 2FA & Security
 pyotp==2.9.0
 qrcode==7.4.2
-Pillow==10.2.0
+# Pillow==11.0.0  # Python 3.14 pas encore supporté, utiliser version binaire
+pypng==0.20220715.0  # Alternative légère pour QR codes
 
 # Email & Templates
 Jinja2==3.1.3

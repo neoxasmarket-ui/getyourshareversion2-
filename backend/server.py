@@ -41,6 +41,8 @@ from db_helpers import (
     get_merchant_by_user_id,
     get_all_products,
     get_product_by_id,
+    get_all_services,
+    get_service_by_id,
     get_affiliate_links,
     create_affiliate_link,
     get_all_campaigns,
@@ -624,9 +626,32 @@ async def get_analytics_overview(payload: dict = Depends(verify_token)):
 
 @app.get("/api/merchants")
 async def get_merchants(payload: dict = Depends(verify_token)):
-    """Liste tous les merchants"""
-    merchants = get_all_merchants()
-    return {"merchants": merchants, "total": len(merchants)}
+    """Liste tous les merchants depuis la table users"""
+    try:
+        # Récupérer les merchants depuis la table users
+        result = supabase.from_("users").select("*").eq("role", "merchant").execute()
+        merchants = result.data if result.data else []
+        
+        # Formater les données pour le dashboard admin
+        formatted_merchants = []
+        for merchant in merchants:
+            formatted_merchants.append({
+                "id": merchant.get("id"),
+                "full_name": merchant.get("company_name") or merchant.get("username", "Inconnu"),
+                "company_name": merchant.get("company_name", ""),
+                "email": merchant.get("email"),
+                "country": merchant.get("country", ""),
+                "balance": float(merchant.get("balance", 0)),
+                "total_spent": float(merchant.get("total_spent", 0)),
+                "total_revenue": float(merchant.get("total_spent", 0)),  # Alias pour compatibilité
+                "campaigns_count": merchant.get("campaigns_count", 0),
+                "status": merchant.get("status", "active")
+            })
+        
+        return {"merchants": formatted_merchants, "total": len(formatted_merchants)}
+    except Exception as e:
+        logger.error(f"Error getting merchants: {e}")
+        return {"merchants": [], "total": 0}
 
 @app.get("/api/merchants/{merchant_id}")
 async def get_merchant(merchant_id: str, payload: dict = Depends(verify_token)):
@@ -642,9 +667,38 @@ async def get_merchant(merchant_id: str, payload: dict = Depends(verify_token)):
 
 @app.get("/api/influencers")
 async def get_influencers(payload: dict = Depends(verify_token)):
-    """Liste tous les influencers"""
-    influencers = get_all_influencers()
-    return {"influencers": influencers, "total": len(influencers)}
+    """Liste tous les influencers depuis la table users"""
+    try:
+        # Récupérer les influenceurs depuis la table users
+        result = supabase.from_("users").select("*").eq("role", "influencer").execute()
+        influencers = result.data if result.data else []
+        
+        # Formater les données pour le dashboard admin
+        formatted_influencers = []
+        for inf in influencers:
+            full_name = f"{inf.get('first_name', '')} {inf.get('last_name', '')}".strip() or inf.get('username', 'Inconnu')
+            username = inf.get('company_name', '') or inf.get('username', '')
+            
+            formatted_influencers.append({
+                "id": inf.get("id"),
+                "full_name": full_name,
+                "username": username.replace('@', ''),  # Retirer @ si présent
+                "email": inf.get("email"),
+                "audience_size": inf.get("followers_count", 0),
+                "engagement_rate": float(inf.get("engagement_rate", 0)),
+                "total_earnings": float(inf.get("total_earned", 0)),
+                "total_clicks": inf.get("total_clicks", 0),
+                "influencer_type": inf.get("influencer_type", "micro"),
+                "category": inf.get("category", "Lifestyle"),
+                "profile_picture_url": inf.get("profile_picture_url"),
+                "social_links": inf.get("social_links", {}),
+                "status": inf.get("status", "active")
+            })
+        
+        return {"influencers": formatted_influencers, "total": len(formatted_influencers)}
+    except Exception as e:
+        logger.error(f"Error getting influencers: {e}")
+        return {"influencers": [], "total": 0}
 
 @app.get("/api/influencers/{influencer_id}")
 async def get_influencer(influencer_id: str, payload: dict = Depends(verify_token)):
@@ -707,12 +761,537 @@ async def get_influencer_stats(influencer_id: str, payload: dict = Depends(verif
         }
 
 # ============================================
+# ADMIN USERS ENDPOINTS
+# ============================================
+
+@app.get("/api/admin/users")
+async def get_admin_users(
+    role: Optional[str] = None,
+    payload: dict = Depends(verify_token)
+):
+    """
+    Liste tous les utilisateurs admin/moderator/support
+    Filtrable par rôle (admin, moderator, support)
+    """
+    try:
+        # Construire la requête
+        query = supabase.from_("users").select("*")
+        
+        # Si un rôle spécifique est demandé
+        if role:
+            query = query.eq("role", role)
+        else:
+            # Sinon, récupérer seulement les rôles administratifs
+            query = query.in_("role", ["admin", "moderator", "support"])
+        
+        result = query.execute()
+        users = result.data if result.data else []
+        
+        # Formater les données
+        formatted_users = []
+        for user in users:
+            formatted_users.append({
+                "id": user.get("id"),
+                "username": user.get("username", ""),
+                "email": user.get("email"),
+                "phone": user.get("phone"),
+                "role": user.get("role"),
+                "status": user.get("status", "active"),
+                "created_at": user.get("created_at", "")[:10] if user.get("created_at") else "",
+                "last_login": user.get("last_login_at", ""),
+                "subscription_plan": user.get("subscription_plan"),
+                "permissions": user.get("permissions", {})
+            })
+        
+        return {"users": formatted_users, "total": len(formatted_users)}
+    except Exception as e:
+        logger.error(f"Error getting admin users: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.post("/api/admin/users")
+async def create_admin_user(
+    user_data: dict,
+    payload: dict = Depends(verify_token)
+):
+    """Créer un nouvel utilisateur admin/moderator/support"""
+    try:
+        # Vérifier que l'email n'existe pas déjà
+        existing = supabase.from_("users").select("id").eq("email", user_data.get("email")).execute()
+        if existing.data:
+            raise HTTPException(status_code=400, detail="Un utilisateur avec cet email existe déjà")
+        
+        # Hasher le mot de passe
+        hashed_password = hash_password(user_data.get("password"))
+        
+        # Créer l'utilisateur
+        new_user = {
+            "username": user_data.get("username"),
+            "email": user_data.get("email"),
+            "phone": user_data.get("phone"),
+            "password_hash": hashed_password,
+            "role": user_data.get("role", "admin"),
+            "status": user_data.get("status", "active"),
+            "permissions": user_data.get("permissions", {}),
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        result = supabase.from_("users").insert(new_user).execute()
+        
+        if result.data:
+            return {"message": "Utilisateur créé avec succès", "user": result.data[0]}
+        else:
+            raise HTTPException(status_code=500, detail="Erreur lors de la création")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating admin user: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.put("/api/admin/users/{user_id}")
+async def update_admin_user(
+    user_id: str,
+    user_data: dict,
+    payload: dict = Depends(verify_token)
+):
+    """Mettre à jour un utilisateur admin"""
+    try:
+        # Préparer les données de mise à jour
+        update_data = {
+            "username": user_data.get("username"),
+            "email": user_data.get("email"),
+            "phone": user_data.get("phone"),
+            "role": user_data.get("role"),
+            "status": user_data.get("status"),
+            "permissions": user_data.get("permissions", {})
+        }
+        
+        # Si un nouveau mot de passe est fourni
+        if user_data.get("password"):
+            update_data["password_hash"] = hash_password(user_data.get("password"))
+        
+        # Retirer les valeurs None
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        result = supabase.from_("users").update(update_data).eq("id", user_id).execute()
+        
+        if result.data:
+            return {"message": "Utilisateur mis à jour", "user": result.data[0]}
+        else:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating admin user: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.delete("/api/admin/users/{user_id}")
+async def delete_admin_user(
+    user_id: str,
+    payload: dict = Depends(verify_token)
+):
+    """Supprimer un utilisateur admin"""
+    try:
+        result = supabase.from_("users").delete().eq("id", user_id).execute()
+        
+        if result.data:
+            return {"message": "Utilisateur supprimé avec succès"}
+        else:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting admin user: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.patch("/api/admin/users/{user_id}/status")
+async def toggle_user_status(
+    user_id: str,
+    status_data: dict,
+    payload: dict = Depends(verify_token)
+):
+    """Activer/désactiver un utilisateur"""
+    try:
+        new_status = status_data.get("status", "active")
+        
+        result = supabase.from_("users").update({"status": new_status}).eq("id", user_id).execute()
+        
+        if result.data:
+            return {"message": f"Statut mis à jour: {new_status}", "user": result.data[0]}
+        else:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error toggling user status: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.put("/api/admin/users/{user_id}/permissions")
+async def update_user_permissions(
+    user_id: str,
+    permissions: dict,
+    payload: dict = Depends(verify_token)
+):
+    """Mettre à jour les permissions d'un utilisateur"""
+    try:
+        result = supabase.from_("users").update({"permissions": permissions}).eq("id", user_id).execute()
+        
+        if result.data:
+            return {"message": "Permissions mises à jour", "user": result.data[0]}
+        else:
+            raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating permissions: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+# ============================================
+# ADVERTISER REGISTRATIONS ENDPOINTS
+# ============================================
+
+@app.get("/api/advertiser-registrations")
+async def get_advertiser_registrations(
+    status: Optional[str] = None,
+    payload: dict = Depends(verify_token)
+):
+    """
+    Liste toutes les demandes d'inscription d'annonceurs
+    Filtrable par statut (pending, approved, rejected)
+    """
+    try:
+        # Construire la requête - chercher les marchands avec statut pending
+        query = supabase.from_("users").select("*").eq("role", "merchant")
+        
+        # Filtrer par statut si spécifié
+        if status:
+            query = query.eq("status", status)
+        else:
+            # Par défaut, montrer seulement les demandes en attente
+            query = query.eq("status", "pending")
+        
+        result = query.order("created_at", desc=True).execute()
+        registrations = result.data if result.data else []
+        
+        # Formater les données
+        formatted_registrations = []
+        for reg in registrations:
+            formatted_registrations.append({
+                "id": reg.get("id"),
+                "company_name": reg.get("company_name") or reg.get("username", ""),
+                "email": reg.get("email"),
+                "country": reg.get("country", ""),
+                "status": reg.get("status", "pending"),
+                "created_at": reg.get("created_at", ""),
+                "phone": reg.get("phone"),
+                "username": reg.get("username")
+            })
+        
+        return {"registrations": formatted_registrations, "total": len(formatted_registrations)}
+    except Exception as e:
+        logger.error(f"Error getting advertiser registrations: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.post("/api/advertiser-registrations/{registration_id}/approve")
+async def approve_advertiser_registration(
+    registration_id: str,
+    payload: dict = Depends(verify_token)
+):
+    """Approuver une demande d'inscription d'annonceur"""
+    try:
+        # Vérifier que l'utilisateur existe
+        user_result = supabase.from_("users").select("*").eq("id", registration_id).execute()
+        
+        if not user_result.data:
+            raise HTTPException(status_code=404, detail="Demande non trouvée")
+        
+        user = user_result.data[0]
+        
+        # Vérifier que c'est bien un merchant
+        if user.get("role") != "merchant":
+            raise HTTPException(status_code=400, detail="Cette demande n'est pas un annonceur")
+        
+        # Mettre à jour le statut à "active"
+        update_result = supabase.from_("users").update({
+            "status": "active",
+            "approved_at": datetime.utcnow().isoformat()
+        }).eq("id", registration_id).execute()
+        
+        if update_result.data:
+            logger.info(f"✅ Advertiser registration approved: {registration_id}")
+            
+            # TODO: Envoyer un email de confirmation à l'annonceur
+            
+            return {
+                "message": "Demande approuvée avec succès",
+                "registration": update_result.data[0]
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Erreur lors de l'approbation")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error approving registration: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.post("/api/advertiser-registrations/{registration_id}/reject")
+async def reject_advertiser_registration(
+    registration_id: str,
+    payload: dict = Depends(verify_token)
+):
+    """Rejeter une demande d'inscription d'annonceur"""
+    try:
+        # Vérifier que l'utilisateur existe
+        user_result = supabase.from_("users").select("*").eq("id", registration_id).execute()
+        
+        if not user_result.data:
+            raise HTTPException(status_code=404, detail="Demande non trouvée")
+        
+        user = user_result.data[0]
+        
+        # Vérifier que c'est bien un merchant
+        if user.get("role") != "merchant":
+            raise HTTPException(status_code=400, detail="Cette demande n'est pas un annonceur")
+        
+        # Mettre à jour le statut à "rejected"
+        update_result = supabase.from_("users").update({
+            "status": "rejected",
+            "rejected_at": datetime.utcnow().isoformat()
+        }).eq("id", registration_id).execute()
+        
+        if update_result.data:
+            logger.info(f"❌ Advertiser registration rejected: {registration_id}")
+            
+            # TODO: Envoyer un email de notification à l'annonceur
+            
+            return {
+                "message": "Demande rejetée",
+                "registration": update_result.data[0]
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Erreur lors du rejet")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error rejecting registration: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+# ============================================
+# INVOICES ENDPOINTS
+# ============================================
+
+@app.get("/api/invoices")
+async def get_invoices(
+    status: Optional[str] = None,
+    merchant_id: Optional[str] = None,
+    payload: dict = Depends(verify_token)
+):
+    """
+    Liste toutes les factures
+    Filtrable par statut (pending, paid, overdue, cancelled, refunded) et merchant_id
+    """
+    try:
+        # Construire la requête avec JOIN pour récupérer les infos du merchant
+        query = supabase.from_("invoices").select("""
+            *,
+            users!invoices_merchant_id_fkey(
+                id,
+                email,
+                company_name,
+                username
+            )
+        """)
+        
+        # Filtrer par statut si spécifié
+        if status:
+            query = query.eq("status", status)
+        
+        # Filtrer par merchant si spécifié
+        if merchant_id:
+            query = query.eq("merchant_id", merchant_id)
+        
+        # Ordonner par date de création (plus récentes en premier)
+        result = query.order("created_at", desc=True).execute()
+        
+        invoices = result.data if result.data else []
+        
+        # Formater les données pour le frontend
+        formatted_invoices = []
+        for inv in invoices:
+            merchant_data = inv.get("users", {})
+            formatted_invoices.append({
+                "id": inv.get("id"),
+                "merchant_id": inv.get("merchant_id"),
+                "advertiser": merchant_data.get("company_name") or merchant_data.get("username", "Inconnu"),
+                "invoice_number": inv.get("invoice_number"),
+                "amount": float(inv.get("amount", 0)),
+                "tax_amount": float(inv.get("tax_amount", 0)),
+                "total_amount": float(inv.get("total_amount", 0)),
+                "currency": inv.get("currency", "EUR"),
+                "description": inv.get("description"),
+                "notes": inv.get("notes"),
+                "status": inv.get("status"),
+                "created_at": inv.get("created_at"),
+                "due_date": inv.get("due_date"),
+                "paid_at": inv.get("paid_at"),
+                "payment_method": inv.get("payment_method"),
+                "payment_reference": inv.get("payment_reference")
+            })
+        
+        return {"invoices": formatted_invoices, "total": len(formatted_invoices)}
+        
+    except Exception as e:
+        logger.error(f"Error getting invoices: {e}")
+        # En cas d'erreur (table pas encore créée), retourner liste vide
+        return {"invoices": [], "total": 0}
+        
+    except Exception as e:
+        logger.error(f"Error getting invoices: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.post("/api/invoices")
+async def create_invoice(
+    invoice_data: dict,
+    payload: dict = Depends(verify_token)
+):
+    """Créer une nouvelle facture"""
+    try:
+        # Valider les données requises
+        if not invoice_data.get("merchant_id"):
+            raise HTTPException(status_code=400, detail="merchant_id est requis")
+        if not invoice_data.get("amount"):
+            raise HTTPException(status_code=400, detail="amount est requis")
+        if not invoice_data.get("due_date"):
+            raise HTTPException(status_code=400, detail="due_date est requis")
+        
+        # TODO: Implémenter la création réelle dans Supabase
+        # Pour le moment, simuler la création
+        
+        # Récupérer les infos du merchant
+        merchant_result = supabase.from_("users").select("*").eq("id", invoice_data["merchant_id"]).execute()
+        
+        if not merchant_result.data:
+            raise HTTPException(status_code=404, detail="Annonceur non trouvé")
+        
+        merchant = merchant_result.data[0]
+        
+        # Générer un numéro de facture
+        import random
+        invoice_number = f"INV-{datetime.utcnow().year}-{random.randint(1000, 9999)}"
+        
+        new_invoice = {
+            "id": f"inv_{datetime.utcnow().timestamp()}",
+            "merchant_id": invoice_data["merchant_id"],
+            "advertiser": merchant.get("company_name") or merchant.get("username"),
+            "invoice_number": invoice_number,
+            "amount": float(invoice_data["amount"]),
+            "description": invoice_data.get("description", ""),
+            "status": "pending",
+            "created_at": datetime.utcnow().isoformat(),
+            "due_date": invoice_data["due_date"],
+            "paid_at": None
+        }
+        
+        logger.info(f"✅ Invoice created: {invoice_number} for {merchant.get('company_name')}")
+        
+        return {
+            "message": "Facture créée avec succès",
+            "invoice": new_invoice
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating invoice: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.get("/api/invoices/{invoice_id}")
+async def get_invoice(
+    invoice_id: str,
+    payload: dict = Depends(verify_token)
+):
+    """Récupérer les détails d'une facture"""
+    try:
+        # TODO: Récupérer depuis la base de données
+        raise HTTPException(status_code=404, detail="Facture non trouvée")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting invoice: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.get("/api/invoices/{invoice_id}/download")
+async def download_invoice(
+    invoice_id: str,
+    payload: dict = Depends(verify_token)
+):
+    """Télécharger une facture en PDF"""
+    try:
+        # TODO: Générer et retourner le PDF
+        raise HTTPException(status_code=501, detail="Génération de PDF non encore implémentée")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading invoice: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+@app.patch("/api/invoices/{invoice_id}/status")
+async def update_invoice_status(
+    invoice_id: str,
+    status_data: dict,
+    payload: dict = Depends(verify_token)
+):
+    """Mettre à jour le statut d'une facture (paid, cancelled, etc.)"""
+    try:
+        new_status = status_data.get("status")
+        
+        if new_status not in ["pending", "paid", "overdue", "cancelled"]:
+            raise HTTPException(status_code=400, detail="Statut invalide")
+        
+        # TODO: Mettre à jour dans la base de données
+        
+        return {
+            "message": f"Statut de la facture mis à jour: {new_status}",
+            "invoice_id": invoice_id,
+            "status": new_status
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating invoice status: {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {str(e)}")
+
+# ============================================
 # PRODUCTS ENDPOINTS
 # ============================================
 
 @app.get("/api/products")
-async def get_products(category: Optional[str] = None, merchant_id: Optional[str] = None):
+async def get_products(
+    category: Optional[str] = None, 
+    merchant_id: Optional[str] = None,
+    payload: dict = Depends(verify_token)
+):
     """Liste tous les produits avec filtres optionnels"""
+    user = get_user_by_id(payload["sub"])
+    
+    # Si merchant, filtrer par ses propres produits (sauf si admin)
+    if user["role"] == "merchant" and not merchant_id:
+        # Récupérer le merchant_id de l'utilisateur
+        try:
+            merchant_response = supabase.table("users").select("id").eq("id", user["id"]).single().execute()
+            if merchant_response.data:
+                merchant_id = merchant_response.data["id"]
+        except Exception as e:
+            print(f"Error getting merchant_id: {e}")
+    
+    # Admin voit tous les produits
     products = get_all_products(category=category, merchant_id=merchant_id)
     return {"products": products, "total": len(products)}
 
@@ -723,6 +1302,38 @@ async def get_product(product_id: str):
     if not product:
         raise HTTPException(status_code=404, detail="Produit non trouvé")
     return product
+
+
+# ============================================
+# SERVICES ENDPOINTS
+# ============================================
+
+@app.get("/api/services")
+async def get_services(
+    category: Optional[str] = None, 
+    merchant_id: Optional[str] = None,
+    payload: dict = Depends(verify_token)
+):
+    """Liste tous les services avec filtres optionnels"""
+    user = get_user_by_id(payload["sub"])
+    
+    # Si merchant, filtrer par ses propres services (sauf si admin)
+    if user["role"] == "merchant" and not merchant_id:
+        merchant_id = user["id"]
+    
+    # Admin voit tous les services
+    services = get_all_services(category=category, merchant_id=merchant_id)
+    return {"services": services, "total": len(services)}
+
+
+@app.get("/api/services/{service_id}")
+async def get_service(service_id: str):
+    """Récupère les détails d'un service"""
+    service = get_service_by_id(service_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="Service non trouvé")
+    return service
+
 
 # ============================================
 # AFFILIATE LINKS ENDPOINTS
@@ -1067,7 +1678,7 @@ async def get_admin_revenue_chart(payload: dict = Depends(verify_token)):
 @app.get("/api/analytics/admin/categories")
 async def get_admin_categories(payload: dict = Depends(verify_token)):
     """
-    Distribution des campagnes par catégorie (données réelles)
+    Distribution des produits par catégorie (données réelles)
     Format: [{category: 'Tech', count: 12}, ...]
     """
     try:
@@ -1076,16 +1687,18 @@ async def get_admin_categories(payload: dict = Depends(verify_token)):
         if role != 'admin':
             raise HTTPException(status_code=403, detail="Admin access required")
         
-        # Query: compter campagnes par catégorie
-        response = supabase.table('campaigns').select('category').execute()
-        campaigns = response.data if response.data else []
+        # Query: compter produits par catégorie depuis la table products
+        response = supabase.table('products').select('category').execute()
+        products = response.data if response.data else []
         
         # Grouper par catégorie
         category_counts = {}
-        for campaign in campaigns:
-            category = campaign.get('category', 'Autre')
+        for product in products:
+            category = product.get('category')
             if category:
                 category_counts[category] = category_counts.get(category, 0) + 1
+            else:
+                category_counts['Autre'] = category_counts.get('Autre', 0) + 1
         
         # Convertir en array
         categories_data = [
@@ -1096,18 +1709,27 @@ async def get_admin_categories(payload: dict = Depends(verify_token)):
         # Trier par count décroissant
         categories_data.sort(key=lambda x: x['count'], reverse=True)
         
-        # Si aucune donnée, retourner des catégories par défaut
+        # Si aucune donnée, créer des catégories avec les rôles d'utilisateurs
         if not categories_data:
+            # Utiliser les rôles comme catégories de fallback
+            users_response = supabase.table('users').select('role').execute()
+            users = users_response.data if users_response.data else []
+            
+            role_counts = {}
+            for user in users:
+                user_role = user.get('role', 'Autre')
+                role_counts[user_role] = role_counts.get(user_role, 0) + 1
+            
             categories_data = [
-                {"category": "Tech", "count": 0},
-                {"category": "Mode", "count": 0},
-                {"category": "Beauté", "count": 0}
+                {"category": role.capitalize(), "count": count}
+                for role, count in role_counts.items()
             ]
+            categories_data.sort(key=lambda x: x['count'], reverse=True)
         
         return {"data": categories_data}
         
     except Exception as e:
-        print(f"Error fetching categories: {e}")
+        logger.error(f"Error fetching categories: {e}")
         return {"data": [
             {"category": "Tech", "count": 0},
             {"category": "Mode", "count": 0},
@@ -1428,39 +2050,80 @@ async def send_message(message_data: MessageCreate, payload: dict = Depends(veri
 @app.get("/api/messages/conversations")
 async def get_conversations(payload: dict = Depends(verify_token)):
     """
-    Récupère toutes les conversations de l'utilisateur
+    Récupère toutes les conversations de l'utilisateur (merchant ou influencer)
     """
     try:
-        user_id = payload.get("user_id")
+        user_id = payload.get("sub")
+        user = get_user_by_id(user_id)
         
-        # Chercher conversations où user est participant
-        query1 = supabase.table('conversations').select('*').eq('user1_id', user_id)
-        query2 = supabase.table('conversations').select('*').eq('user2_id', user_id)
+        # Récupérer conversations selon le rôle
+        if user["role"] == "merchant":
+            result = supabase.from_("conversations").select("""
+                *,
+                influencer:influencer_id(id, username, email, avatar_url)
+            """).eq("merchant_id", user_id).order("last_message_at", desc=True).execute()
+        elif user["role"] == "influencer":
+            result = supabase.from_("conversations").select("""
+                *,
+                merchant:merchant_id(id, username, email, company_name, avatar_url)
+            """).eq("influencer_id", user_id).order("last_message_at", desc=True).execute()
+        elif user["role"] == "admin":
+            # Admin voit toutes les conversations
+            result = supabase.from_("conversations").select("""
+                *,
+                merchant:merchant_id(id, username, email, company_name),
+                influencer:influencer_id(id, username, email)
+            """).order("last_message_at", desc=True).execute()
+        else:
+            return {"conversations": []}
         
-        conv1 = query1.execute()
-        conv2 = query2.execute()
+        conversations = result.data if result.data else []
         
-        conversations = (conv1.data or []) + (conv2.data or [])
-        
-        # Enrichir avec derniers messages
+        # Formater les conversations pour le frontend
+        formatted_conversations = []
         for conv in conversations:
-            # Récupérer dernier message
-            msg_query = supabase.table('messages').select('*').eq('conversation_id', conv['id']).order('created_at', desc=True).limit(1)
-            msg_response = msg_query.execute()
-            conv['last_message'] = msg_response.data[0] if msg_response.data else None
-            
-            # Compter messages non lus
-            unread_query = supabase.table('messages').select('id', count='exact').eq('conversation_id', conv['id']).eq('is_read', False).neq('sender_id', user_id)
-            unread_response = unread_query.execute()
-            conv['unread_count'] = unread_response.count if hasattr(unread_response, 'count') else 0
+            if user["role"] == "admin":
+                # Pour admin, afficher merchant et influencer
+                merchant = conv.get("merchant")
+                influencer = conv.get("influencer")
+                formatted_conversations.append({
+                    "id": conv.get("id"),
+                    "merchant": {
+                        "id": merchant.get("id") if merchant else None,
+                        "name": merchant.get("company_name") or merchant.get("username") if merchant else "Marchand",
+                        "email": merchant.get("email") if merchant else None
+                    },
+                    "influencer": {
+                        "id": influencer.get("id") if influencer else None,
+                        "name": influencer.get("username") if influencer else "Influenceur",
+                        "email": influencer.get("email") if influencer else None
+                    },
+                    "last_message": conv.get("last_message"),
+                    "last_message_at": conv.get("last_message_at"),
+                    "unread_count_merchant": conv.get("unread_count_merchant"),
+                    "unread_count_influencer": conv.get("unread_count_influencer"),
+                    "status": conv.get("status")
+                })
+            else:
+                # Pour merchant/influencer, afficher l'autre utilisateur
+                other_user = conv.get("influencer") if user["role"] == "merchant" else conv.get("merchant")
+                formatted_conversations.append({
+                    "id": conv.get("id"),
+                    "other_user": {
+                        "id": other_user.get("id") if other_user else None,
+                        "name": other_user.get("company_name") or other_user.get("username") if other_user else "Utilisateur",
+                        "avatar": other_user.get("avatar_url") if other_user else None
+                    },
+                    "last_message": conv.get("last_message"),
+                    "last_message_at": conv.get("last_message_at"),
+                    "unread_count": conv.get("unread_count_merchant") if user["role"] == "merchant" else conv.get("unread_count_influencer"),
+                    "status": conv.get("status")
+                })
         
-        # Trier par dernière activité
-        conversations.sort(key=lambda x: x.get('last_message_at', ''), reverse=True)
-        
-        return {"conversations": conversations}
+        return {"conversations": formatted_conversations}
         
     except Exception as e:
-        print(f"Error fetching conversations: {e}")
+        logger.error(f"Error fetching conversations: {e}")
         return {"conversations": []}
 
 @app.get("/api/messages/{conversation_id}")
@@ -1469,33 +2132,58 @@ async def get_messages(conversation_id: str, payload: dict = Depends(verify_toke
     Récupère tous les messages d'une conversation
     """
     try:
-        user_id = payload.get("user_id")
+        user_id = payload.get("sub")
+        user = get_user_by_id(user_id)
         
-        # Vérifier que l'utilisateur fait partie de la conversation
-        conv = supabase.table('conversations').select('*').eq('id', conversation_id).execute()
+        # Vérifier que l'utilisateur fait partie de la conversation ou est admin
+        conv = supabase.from_('conversations').select('*').eq('id', conversation_id).execute()
         if not conv.data:
             raise HTTPException(status_code=404, detail="Conversation not found")
         
         conversation = conv.data[0]
-        if conversation['user1_id'] != user_id and conversation['user2_id'] != user_id:
-            raise HTTPException(status_code=403, detail="Access denied")
         
-        # Récupérer les messages
-        messages_query = supabase.table('messages').select('*').eq('conversation_id', conversation_id).order('created_at', desc=False)
+        # Vérifier l'accès (admin peut tout voir, sinon vérifier merchant_id ou influencer_id)
+        if user["role"] != "admin":
+            if conversation['merchant_id'] != user_id and conversation['influencer_id'] != user_id:
+                raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Récupérer les messages avec les infos de l'expéditeur
+        messages_query = supabase.from_('messages').select('''
+            *,
+            sender:sender_id(id, username, email, role, company_name)
+        ''').eq('conversation_id', conversation_id).order('created_at', desc=False)
         messages_response = messages_query.execute()
         
-        # Marquer comme lu les messages reçus
-        supabase.table('messages').update({'is_read': True, 'read_at': datetime.utcnow().isoformat()}).eq('conversation_id', conversation_id).neq('sender_id', user_id).eq('is_read', False).execute()
+        # Formater les messages
+        formatted_messages = []
+        for msg in messages_response.data or []:
+            sender = msg.get('sender', {})
+            formatted_messages.append({
+                'id': msg.get('id'),
+                'content': msg.get('content'),
+                'sender_id': msg.get('sender_id'),
+                'sender_name': sender.get('company_name') or sender.get('username') or 'Utilisateur',
+                'sender_role': sender.get('role'),
+                'is_read': msg.get('is_read'),
+                'created_at': msg.get('created_at'),
+                'is_mine': msg.get('sender_id') == user_id
+            })
+        
+        # Marquer comme lu les messages reçus (sauf pour admin)
+        if user["role"] != "admin":
+            supabase.from_('messages').update({
+                'is_read': True
+            }).eq('conversation_id', conversation_id).neq('sender_id', user_id).eq('is_read', False).execute()
         
         return {
             "conversation": conversation,
-            "messages": messages_response.data or []
+            "messages": formatted_messages
         }
         
     except HTTPException:
         raise
     except Exception as e:
-        print(f"Error fetching messages: {e}")
+        logger.error(f"Error fetching messages: {e}")
         raise HTTPException(status_code=500, detail=f"Error fetching messages: {str(e)}")
 
 @app.get("/api/notifications")
@@ -1719,32 +2407,54 @@ async def get_platform_metrics(payload: dict = Depends(verify_token)):
         if user["role"] != "admin":
             raise HTTPException(status_code=403, detail="Accès refusé")
         
-        # Taux de conversion moyen plateforme
-        sales_count = supabase.table("sales").select("id", count="exact").execute().count or 0
-        
-        links_result = supabase.table("trackable_links").select("clicks").execute()
-        total_clicks = sum(link.get("clicks", 0) for link in links_result.data) or 1
-        
-        avg_conversion_rate = (sales_count / total_clicks * 100) if total_clicks > 0 else 0
-        
-        # Clics totaux ce mois
         from datetime import datetime, timedelta
-        first_day = datetime.now().replace(day=1)
         
-        # Croissance (comparaison avec mois dernier)
-        # TODO: Implémenter calcul réel
+        # 1. Utilisateurs actifs dans les dernières 24h
+        twentyfour_hours_ago = (datetime.now() - timedelta(hours=24)).isoformat()
+        active_users = supabase.table("users").select("id", count="exact").gt("last_login", twentyfour_hours_ago).execute()
+        active_users_24h = active_users.count or 0
+        
+        # 2. Taux de conversion (sales / clicks)
+        sales_count = supabase.table("sales").select("id", count="exact").execute().count or 0
+        links_result = supabase.table("trackable_links").select("clicks").execute()
+        total_clicks = sum(link.get("clicks", 0) for link in links_result.data) if links_result.data else 1
+        conversion_rate = round((sales_count / total_clicks * 100), 2) if total_clicks > 0 else 0
+        
+        # 3. Nouvelles inscriptions dans les 30 derniers jours
+        thirty_days_ago = (datetime.now() - timedelta(days=30)).isoformat()
+        new_signups = supabase.table("users").select("id", count="exact").gte("created_at", thirty_days_ago).execute()
+        new_signups_30d = new_signups.count or 0
+        
+        # 4. Calcul des tendances (comparaison avec période précédente)
+        # Utilisateurs actifs période précédente (24-48h avant)
+        fortyeight_hours_ago = (datetime.now() - timedelta(hours=48)).isoformat()
+        prev_active = supabase.table("users").select("id", count="exact").gt("last_login", fortyeight_hours_ago).lt("last_login", twentyfour_hours_ago).execute()
+        prev_active_count = prev_active.count or 1
+        user_growth_rate = round(((active_users_24h - prev_active_count) / prev_active_count * 100), 1) if prev_active_count > 0 else 0
+        
+        # Inscriptions période précédente (30-60j avant)
+        sixty_days_ago = (datetime.now() - timedelta(days=60)).isoformat()
+        prev_signups = supabase.table("users").select("id", count="exact").gte("created_at", sixty_days_ago).lt("created_at", thirty_days_ago).execute()
+        prev_signups_count = prev_signups.count or 1
+        signup_trend = round(((new_signups_30d - prev_signups_count) / prev_signups_count * 100), 1) if prev_signups_count > 0 else 0
         
         return {
-            "avg_conversion_rate": round(avg_conversion_rate, 2),
-            "monthly_clicks": total_clicks,
-            "quarterly_growth": 32.0  # TODO: Calculer réellement
+            "active_users_24h": active_users_24h,
+            "conversion_rate": conversion_rate,
+            "new_signups_30d": new_signups_30d,
+            "user_growth_rate": user_growth_rate,
+            "conversion_trend": 0,  # TODO: Calculer vraiment si besoin
+            "signup_trend": signup_trend
         }
     except Exception as e:
-        print(f"Error getting platform metrics: {e}")
+        logger.error(f"Error getting platform metrics: {e}")
         return {
-            "avg_conversion_rate": 14.2,
-            "monthly_clicks": 285000,
-            "quarterly_growth": 32.0
+            "active_users_24h": 0,
+            "conversion_rate": 0,
+            "new_signups_30d": 0,
+            "user_growth_rate": 0,
+            "conversion_trend": 0,
+            "signup_trend": 0
         }
 
 @app.get("/api/admin/platform-revenue")
