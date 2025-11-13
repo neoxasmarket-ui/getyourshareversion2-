@@ -600,6 +600,100 @@ class GamificationService:
         pass
 
     # ========================================
+    # GET USER GAMIFICATION DATA
+    # ========================================
+
+    async def get_user_gamification(
+        self,
+        user_id: str,
+        user_type: UserType
+    ) -> Dict[str, Any]:
+        """
+        Récupérer toutes les données de gamification d'un utilisateur
+
+        Args:
+            user_id: ID utilisateur
+            user_type: Type utilisateur
+
+        Returns:
+            Dictionnaire avec points, niveau, badges, missions, rewards
+        """
+        try:
+            # En production, ces queries seraient contre Supabase
+            # Pour l'instant, on retourne des données de test
+            
+            # Récupérer points et niveau
+            total_points = await self._get_user_points(user_id, user_type)
+            current_tier = self._get_tier_from_points(total_points)
+            
+            # Calculer progression vers prochain niveau
+            tier_list = list(LevelTier)
+            current_index = tier_list.index(current_tier)
+            
+            if current_index < len(tier_list) - 1:
+                next_tier = tier_list[current_index + 1]
+                next_threshold = self.LEVEL_THRESHOLDS[next_tier]
+                current_threshold = self.LEVEL_THRESHOLDS[current_tier]
+                progress = ((total_points - current_threshold) / (next_threshold - current_threshold)) * 100
+            else:
+                next_tier = None
+                next_threshold = None
+                progress = 100
+            
+            # Récupérer badges
+            user_badges = await self.get_user_badges(user_id, user_type)
+            
+            # Récupérer missions
+            daily_missions = await self.get_daily_missions(user_id, user_type)
+            
+            # Récupérer rang
+            rank_info = await self.get_user_rank(user_id, user_type)
+            
+            # Construire réponse
+            result = {
+                'user_id': user_id,
+                'user_type': user_type.value,
+                'level': {
+                    'current_tier': current_tier.value,
+                    'tier_name': current_tier.value.capitalize(),
+                    'total_points': total_points,
+                    'next_tier': next_tier.value if next_tier else None,
+                    'points_to_next': next_threshold - total_points if next_threshold else 0,
+                    'progress_percentage': round(progress, 1),
+                    'benefits': self.LEVEL_BENEFITS[current_tier]
+                },
+                'badges': {
+                    'earned': user_badges,
+                    'total_earned': len(user_badges),
+                    'available': [
+                        {
+                            'key': key,
+                            **badge_info
+                        }
+                        for key, badge_info in self.BADGES.items()
+                        if user_type in badge_info['user_types']
+                    ]
+                },
+                'missions': {
+                    'daily': daily_missions,
+                    'completed_today': len([m for m in daily_missions if m['completed']]),
+                    'total_today': len(daily_missions)
+                },
+                'leaderboard': rank_info,
+                'recent_activity': [],  # À implémenter
+                'rewards': {
+                    'available': [],  # À implémenter
+                    'claimed': []  # À implémenter
+                }
+            }
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error getting user gamification: {e}")
+            raise
+
+    # ========================================
     # LEADERBOARDS
     # ========================================
 

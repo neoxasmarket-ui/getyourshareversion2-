@@ -568,17 +568,82 @@ def get_dashboard_stats(role: str, user_id: str) -> Dict:
             }
 
         elif role == "influencer":
-            # Stats influencer
-            influencer = get_influencer_by_user_id(user_id)
-            if not influencer:
-                return {}
-
-            return {
-                "total_earnings": influencer.get("total_earnings", 0),
-                "total_clicks": influencer.get("total_clicks", 0),
-                "total_sales": influencer.get("total_sales", 0),
-                "balance": influencer.get("balance", 0),
-            }
+            # Stats influencer - CORRIGÉ pour utiliser les vraies tables
+            try:
+                # Récupérer l'influencer_id depuis la table users (colonne influencer_id)
+                user_result = supabase.table("users").select("influencer_id, id").eq("id", user_id).single().execute()
+                if not user_result.data:
+                    return {}
+                
+                influencer_id = user_result.data.get("influencer_id") or user_result.data.get("id")
+                
+                # Stats depuis la table conversions (remplace click_tracking)
+                conversions_result = supabase.table("conversions").select("*").eq("influencer_id", influencer_id).execute()
+                conversions = conversions_result.data if conversions_result.data else []
+                
+                # Compter les clics (chaque conversion = 1 clic)
+                total_clicks = len(conversions)
+                
+                # Compter les ventes (conversions avec status = 'completed')
+                total_sales = len([c for c in conversions if c.get("status") == "completed"])
+                
+                # Calculer les earnings depuis les conversions
+                total_earnings = sum([float(c.get("commission_amount", 0)) for c in conversions if c.get("status") == "completed"])
+                
+                # Calculer le balance: earnings - payouts payés
+                payouts_result = supabase.table("payouts").select("amount").eq("influencer_id", influencer_id).eq("status", "paid").execute()
+                payouts = payouts_result.data if payouts_result.data else []
+                total_paid = sum([float(p.get("amount", 0)) for p in payouts])
+                balance = total_earnings - total_paid
+                
+                # Calculer les croissances (comparaison 30 derniers jours vs 30 jours précédents)
+                from datetime import datetime, timedelta
+                now = datetime.now()
+                thirty_days_ago = now - timedelta(days=30)
+                sixty_days_ago = now - timedelta(days=60)
+                
+                # Conversions des 30 derniers jours
+                recent_conversions = [c for c in conversions if datetime.fromisoformat(c.get("created_at", "1970-01-01").replace("Z", "+00:00")) >= thirty_days_ago]
+                previous_conversions = [c for c in conversions if sixty_days_ago <= datetime.fromisoformat(c.get("created_at", "1970-01-01").replace("Z", "+00:00")) < thirty_days_ago]
+                
+                # Calcul des croissances
+                earnings_growth = 0
+                if len(previous_conversions) > 0:
+                    recent_earnings = sum([float(c.get("commission_amount", 0)) for c in recent_conversions if c.get("status") == "completed"])
+                    previous_earnings = sum([float(c.get("commission_amount", 0)) for c in previous_conversions if c.get("status") == "completed"])
+                    if previous_earnings > 0:
+                        earnings_growth = ((recent_earnings - previous_earnings) / previous_earnings) * 100
+                
+                clicks_growth = 0
+                if len(previous_conversions) > 0:
+                    clicks_growth = ((len(recent_conversions) - len(previous_conversions)) / len(previous_conversions)) * 100
+                
+                sales_growth = 0
+                recent_sales = len([c for c in recent_conversions if c.get("status") == "completed"])
+                previous_sales = len([c for c in previous_conversions if c.get("status") == "completed"])
+                if previous_sales > 0:
+                    sales_growth = ((recent_sales - previous_sales) / previous_sales) * 100
+                
+                return {
+                    "total_earnings": total_earnings,
+                    "total_clicks": total_clicks,
+                    "total_sales": total_sales,
+                    "balance": balance,
+                    "earnings_growth": round(earnings_growth, 2),
+                    "clicks_growth": round(clicks_growth, 2),
+                    "sales_growth": round(sales_growth, 2)
+                }
+            except Exception as e:
+                print(f"Error getting influencer stats: {e}")
+                return {
+                    "total_earnings": 0,
+                    "total_clicks": 0,
+                    "total_sales": 0,
+                    "balance": 0,
+                    "earnings_growth": 0,
+                    "clicks_growth": 0,
+                    "sales_growth": 0
+                }
 
         return {}
 

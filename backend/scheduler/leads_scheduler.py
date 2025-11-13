@@ -17,10 +17,11 @@ from services.notification_service import NotificationService
 from services.lead_service import LeadService
 from supabase_client import supabase
 
-# Initialiser les services
-deposit_service = DepositService(supabase)
-notification_service = NotificationService(supabase)
-lead_service = LeadService(supabase)
+# Delayed initialization of services and scheduler to avoid import-time side-effects
+deposit_service = None
+notification_service = None
+lead_service = None
+_scheduler = None
 
 
 def check_deposits_and_send_alerts():
@@ -37,6 +38,8 @@ def check_deposits_and_send_alerts():
     
     try:
         # Récupérer tous les dépôts actifs
+        # Use the global supabase client (initialized on import) and services that will be
+        # set by start_scheduler() before the scheduler runs.
         response = supabase.table('company_deposits')\
             .select('*')\
             .eq('status', 'active')\
@@ -88,7 +91,8 @@ def check_deposits_and_send_alerts():
                             .execute()
                     
                     # Envoyer alerte CRITIQUE (Email + SMS + WhatsApp + Dashboard)
-                    notification_service.send_deposit_depleted_alert(
+                    if notification_service:
+                        notification_service.send_deposit_depleted_alert(
                         merchant_id=merchant_id,
                         deposit_id=deposit_id,
                         campaign_id=deposit.get('campaign_id')
@@ -102,7 +106,8 @@ def check_deposits_and_send_alerts():
                     alert_level = 'CRITICAL'
                     
                     # Email + SMS + WhatsApp + Dashboard
-                    notification_service.send_low_balance_alert(
+                    if notification_service:
+                        notification_service.send_low_balance_alert(
                         merchant_id=merchant_id,
                         deposit_id=deposit_id,
                         current_balance=current_balance,
@@ -119,7 +124,8 @@ def check_deposits_and_send_alerts():
                     alert_level = 'WARNING'
                     
                     # Email + SMS + Dashboard
-                    notification_service.send_low_balance_alert(
+                    if notification_service:
+                        notification_service.send_low_balance_alert(
                         merchant_id=merchant_id,
                         deposit_id=deposit_id,
                         current_balance=current_balance,
@@ -136,7 +142,8 @@ def check_deposits_and_send_alerts():
                     alert_level = 'ATTENTION'
                     
                     # Email + Dashboard uniquement
-                    notification_service.send_low_balance_alert(
+                    if notification_service:
+                        notification_service.send_low_balance_alert(
                         merchant_id=merchant_id,
                         deposit_id=deposit_id,
                         current_balance=current_balance,
@@ -227,12 +234,17 @@ def cleanup_expired_leads():
                         .execute()
                     
                     if deposit_id.data and len(deposit_id.data) > 0:
-                        supabase.table('company_deposits')\
-                            .update({
-                                'reserved_amount': supabase.table('company_deposits').select('reserved_amount').eq('id', deposit_id.data[0]['id']).execute().data[0]['reserved_amount'] - float(lead['commission_amount'])
-                            })\
-                            .eq('id', deposit_id.data[0]['id'])\
-                            .execute()
+                        # NOTE: keep operations simple here; services should handle complex logic when available
+                        try:
+                            current_reserved = supabase.table('company_deposits').select('reserved_amount').eq('id', deposit_id.data[0]['id']).execute().data[0]['reserved_amount']
+                            supabase.table('company_deposits')\
+                                .update({
+                                    'reserved_amount': float(current_reserved) - float(lead['commission_amount'])
+                                })\
+                                .eq('id', deposit_id.data[0]['id'])\
+                                .execute()
+                        except Exception:
+                            pass
                 
                 print(f"   🗑️  Lead {lead_id} expiré et marqué comme perdu")
             
@@ -314,54 +326,75 @@ def generate_daily_report():
 # CONFIGURATION DU SCHEDULER
 # ============================================
 
-scheduler = BackgroundScheduler(timezone='Africa/Casablanca')
+def _create_scheduler_jobs(scheduler_obj):
+    """Register jobs on the provided scheduler object."""
+    # Vérification des dépôts TOUTES LES HEURES
+    scheduler_obj.add_job(
+        check_deposits_and_send_alerts,
+        trigger=CronTrigger(minute=0),  # Chaque heure à H:00
+        id='check_deposits',
+        name='Vérification dépôts et alertes',
+        replace_existing=True
+    )
 
-# Vérification des dépôts TOUTES LES HEURES
-scheduler.add_job(
-    check_deposits_and_send_alerts,
-    trigger=CronTrigger(minute=0),  # Chaque heure à H:00
-    id='check_deposits',
-    name='Vérification dépôts et alertes',
-    replace_existing=True
-)
+    # Nettoyage des leads expirés TOUS LES JOURS à 23:00
+    scheduler_obj.add_job(
+        cleanup_expired_leads,
+        trigger=CronTrigger(hour=23, minute=0),  # 23:00 tous les jours
+        id='cleanup_leads',
+        name='Nettoyage leads expirés',
+        replace_existing=True
+    )
 
-# Nettoyage des leads expirés TOUS LES JOURS à 23:00
-scheduler.add_job(
-    cleanup_expired_leads,
-    trigger=CronTrigger(hour=23, minute=0),  # 23:00 tous les jours
-    id='cleanup_leads',
-    name='Nettoyage leads expirés',
-    replace_existing=True
-)
-
-# Rapport quotidien TOUS LES JOURS à 09:00
-scheduler.add_job(
-    generate_daily_report,
-    trigger=CronTrigger(hour=9, minute=0),  # 09:00 tous les jours
-    id='daily_report',
-    name='Rapport quotidien',
-    replace_existing=True
-)
+    # Rapport quotidien TOUS LES JOURS à 09:00
+    scheduler_obj.add_job(
+        generate_daily_report,
+        trigger=CronTrigger(hour=9, minute=0),  # 09:00 tous les jours
+        id='daily_report',
+        name='Rapport quotidien',
+        replace_existing=True
+    )
 
 
 def start_scheduler():
     """Démarre le scheduler"""
+    global _scheduler, deposit_service, notification_service, lead_service
+    if _scheduler is not None:
+        print("ℹ️ Scheduler already started")
+        return _scheduler
+
     try:
-        scheduler.start()
+        # Initialize services only when starting the scheduler to avoid import-time work
+        try:
+            deposit_service = DepositService(supabase)
+            notification_service = NotificationService(supabase)
+            lead_service = LeadService(supabase)
+        except Exception as e:
+            print(f"⚠️ Could not initialize services for scheduler: {e}")
+
+        _scheduler = BackgroundScheduler(timezone='Africa/Casablanca')
+        _create_scheduler_jobs(_scheduler)
+        _scheduler.start()
         print("\n✅ Scheduler LEADS démarré avec succès!")
         print("   🔄 Vérification dépôts: Toutes les heures")
         print("   🧹 Nettoyage leads expirés: 23:00 quotidien")
         print("   📊 Rapport quotidien: 09:00 quotidien")
-        return scheduler
+        return _scheduler
     except Exception as e:
         print(f"❌ Erreur démarrage scheduler: {e}")
+        _scheduler = None
         return None
 
 
 def stop_scheduler():
     """Arrête le scheduler"""
+    global _scheduler
     try:
-        scheduler.shutdown()
+        if _scheduler is None:
+            print("ℹ️ Scheduler not running")
+            return
+        _scheduler.shutdown()
+        _scheduler = None
         print("✅ Scheduler arrêté")
     except Exception as e:
         print(f"❌ Erreur arrêt scheduler: {e}")

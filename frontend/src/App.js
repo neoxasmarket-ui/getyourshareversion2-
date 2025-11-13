@@ -35,6 +35,12 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const GettingStarted = lazy(() => import('./pages/GettingStarted'));
 const News = lazy(() => import('./pages/News'));
 
+// ---------- Dashboards Spécifiques ----------
+const AdminDashboard = lazy(() => import('./pages/dashboards/AdminDashboard'));
+const MerchantDashboard = lazy(() => import('./pages/dashboards/MerchantDashboard'));
+const InfluencerDashboard = lazy(() => import('./pages/dashboards/InfluencerDashboard'));
+const CommercialDashboard = lazy(() => import('./pages/dashboards/CommercialDashboard'));
+
 // ---------- Marketplace ----------
 const Marketplace = lazy(() => import('./pages/Marketplace'));
 const MarketplaceV2 = lazy(() => import('./pages/MarketplaceV2'));
@@ -296,6 +302,43 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+                
+                {/* ========================================
+                    DASHBOARDS SPÉCIFIQUES PAR RÔLE
+                ======================================== */}
+                <Route
+                  path="/dashboard/admin"
+                  element={
+                    <RoleProtectedRoute allowedRoles={['admin']}>
+                      <AdminDashboard />
+                    </RoleProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/merchant"
+                  element={
+                    <RoleProtectedRoute allowedRoles={['merchant', 'admin']}>
+                      <MerchantDashboard />
+                    </RoleProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/influencer"
+                  element={
+                    <RoleProtectedRoute allowedRoles={['influencer', 'admin']}>
+                      <InfluencerDashboard />
+                    </RoleProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/commercial"
+                  element={
+                    <RoleProtectedRoute allowedRoles={['commercial', 'admin']}>
+                      <CommercialDashboard />
+                    </RoleProtectedRoute>
+                  }
+                />
+                
                 <Route
                   path="/news"
                   element={

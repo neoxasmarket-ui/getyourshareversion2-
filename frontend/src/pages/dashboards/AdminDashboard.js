@@ -6,6 +6,8 @@ import StatCard from '../../components/common/StatCard';
 import Card from '../../components/common/Card';
 import SkeletonDashboard from '../../components/common/SkeletonLoader';
 import EmptyState from '../../components/common/EmptyState';
+import { motion } from 'framer-motion';
+import CountUp from 'react-countup';
 import {
   TrendingUp, Users, DollarSign, ShoppingBag,
   Sparkles, BarChart3, Target, Eye, Settings, FileText, Bell, Download, RefreshCw, Briefcase
@@ -39,21 +41,36 @@ const AdminDashboard = () => {
         api.get('/api/analytics/overview'),
         api.get('/api/merchants'),
         api.get('/api/influencers'),
-        api.get('/api/analytics/admin/revenue-chart'),
-        api.get('/api/analytics/admin/categories'),
-        api.get('/api/analytics/admin/platform-metrics')
+        api.get('/api/analytics/revenue-chart'),
+        api.get('/api/analytics/categories'),
+        api.get('/api/analytics/platform-metrics')
       ]);
 
       // Gérer les statistiques
       const [statsRes, merchantsRes, influencersRes, revenueRes, categoriesRes, metricsRes] = results;
 
-      if (statsRes.status === 'fulfilled' && metricsRes.status === 'fulfilled') {
+      if (statsRes.status === 'fulfilled') {
+        const overview = statsRes.value.data;
+        const metrics = metricsRes.status === 'fulfilled' ? metricsRes.value.data : {};
+        
         setStats({
-          ...statsRes.value.data,
-          platformMetrics: metricsRes.value.data
+          total_revenue: overview.financial?.total_revenue || 0,
+          total_merchants: overview.users?.total_merchants || 0,
+          total_influencers: overview.users?.total_influencers || 0,
+          total_products: overview.catalog?.total_products || 0,
+          total_services: overview.catalog?.total_services || 0,
+          total_campaigns: overview.catalog?.total_campaigns || 0,
+          total_clicks: overview.tracking?.total_clicks || 0,
+          total_conversions: overview.tracking?.total_conversions || 0,
+          conversion_rate: overview.tracking?.conversion_rate || 0,
+          platformMetrics: {
+            avg_conversion_rate: metrics.avg_conversion_rate || 0,
+            monthly_clicks: metrics.monthly_clicks || 0,
+            quarterly_growth: metrics.quarterly_growth || 0
+          }
         });
       } else {
-        console.error('Error loading stats:', statsRes.reason || metricsRes.reason);
+        console.error('Error loading stats:', statsRes.reason);
         toast.error('Erreur lors du chargement des statistiques');
         setStats({
           total_revenue: 0,
@@ -88,9 +105,9 @@ const AdminDashboard = () => {
       // Gérer les données de revenus
       if (revenueRes.status === 'fulfilled') {
         const dailyData = revenueRes.value.data.data || [];
-        setRevenueData(dailyData.map((day, idx) => ({
-          month: day.date,
-          revenue: day.revenus
+        setRevenueData(dailyData.map((day) => ({
+          month: day.formatted_date || day.date,
+          revenue: day.revenus || 0
         })));
       } else {
         console.error('Error loading revenue chart:', revenueRes.reason);
@@ -102,8 +119,8 @@ const AdminDashboard = () => {
         const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#14b8a6'];
         const categoriesData = categoriesRes.value.data.data || [];
         setCategoryData(categoriesData.map((cat, idx) => ({
-          name: cat.category,
-          value: cat.count,
+          name: cat.name || cat.category,
+          value: cat.value || cat.count || 0,
           color: colors[idx % colors.length]
         })));
       } else {
@@ -251,86 +268,139 @@ Généré par ShareYourSales
 
       {/* Stats Grid - Première ligne : 4 cartes principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Revenus Total"
-          value={stats?.total_revenue || 502000}
-          isCurrency={true}
-          icon={<DollarSign className="text-green-600" size={24} />}
-          trend={stats?.platformMetrics?.quarterly_growth || 12.5}
-        />
-        <StatCard
-          title="Entreprises"
-          value={stats?.total_merchants || merchants.length}
-          icon={<ShoppingBag className="text-indigo-600" size={24} />}
-          trend={8.2}
-        />
-        <StatCard
-          title="Influenceurs"
-          value={stats?.total_influencers || influencers.length}
-          icon={<Users className="text-purple-600" size={24} />}
-          trend={15.3}
-        />
-        <StatCard
-          title="Produits"
-          value={stats?.total_products || 0}
-          icon={<Sparkles className="text-orange-600" size={24} />}
-          trend={5.7}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0 }}
+        >
+          <StatCard
+            title="Revenus Total"
+            value={<CountUp end={stats?.total_revenue || 502000} duration={2.5} decimals={2} separator=" " suffix="€" />}
+            isCurrency={false}
+            icon={<DollarSign className="text-green-600" size={24} />}
+            trend={stats?.platformMetrics?.quarterly_growth || 12.5}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <StatCard
+            title="Entreprises"
+            value={<CountUp end={stats?.total_merchants || merchants.length} duration={2} />}
+            icon={<ShoppingBag className="text-indigo-600" size={24} />}
+            trend={8.2}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <StatCard
+            title="Influenceurs"
+            value={<CountUp end={stats?.total_influencers || influencers.length} duration={2} />}
+            icon={<Users className="text-purple-600" size={24} />}
+            trend={15.3}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <StatCard
+            title="Produits"
+            value={<CountUp end={stats?.total_products || 0} duration={2} />}
+            icon={<Sparkles className="text-orange-600" size={24} />}
+            trend={5.7}
+          />
+        </motion.div>
       </div>
 
       {/* Stats Grid - Deuxième ligne : Services et autres */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
-        <StatCard
-          title="Services"
-          value={stats?.total_services || 0}
-          icon={<Briefcase className="text-teal-600" size={24} />}
-          trend={12.4}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <StatCard
+            title="Services"
+            value={<CountUp end={stats?.total_services || 0} duration={2} />}
+            icon={<Briefcase className="text-teal-600" size={24} />}
+            trend={12.4}
+          />
+        </motion.div>
       </div>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Revenue Chart */}
-        <Card title="Évolution du Chiffre d'Affaires" icon={<TrendingUp size={20} />}>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip formatter={(value) => `${value.toLocaleString()} €`} />
-              <Line 
-                type="monotone" 
-                dataKey="revenue" 
-                stroke="#6366f1" 
-                strokeWidth={3}
-                dot={{ fill: '#6366f1', r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <Card title="Évolution du Chiffre d'Affaires" icon={<TrendingUp size={20} />}>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={revenueData}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="month" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip 
+                  formatter={(value) => `${value.toLocaleString()} €`}
+                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#8b5cf6" 
+                  strokeWidth={3}
+                  dot={{ fill: '#8b5cf6', r: 5, strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 8, fill: '#8b5cf6' }}
+                  fill="url(#colorRevenue)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </Card>
+        </motion.div>
 
         {/* Category Distribution */}
-        <Card title="Répartition par Catégorie" icon={<BarChart3 size={20} />}>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <Card title="Répartition par Catégorie" icon={<BarChart3 size={20} />}>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
               >
                 {categoryData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
             </PieChart>
           </ResponsiveContainer>
         </Card>
+        </motion.div>
       </div>
 
       {/* Tables Row */}

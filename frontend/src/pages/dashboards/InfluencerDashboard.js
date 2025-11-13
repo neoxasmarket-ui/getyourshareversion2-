@@ -10,6 +10,8 @@ import EmptyState from '../../components/common/EmptyState';
 import Modal from '../../components/common/Modal';
 import MobilePaymentWidget from '../../components/payments/MobilePaymentWidget';
 import GamificationWidget from '../../components/GamificationWidget';
+import { motion } from 'framer-motion';
+import CountUp from 'react-countup';
 import {
   DollarSign, MousePointer, ShoppingCart, TrendingUp,
   Eye, Target, Award, Link as LinkIcon, Sparkles, RefreshCw, X, Send, BarChart3, Wallet,
@@ -66,7 +68,7 @@ const InfluencerDashboard = () => {
       setError(null);
       // Utiliser Promise.allSettled au lieu de Promise.all
       const results = await Promise.allSettled([
-        api.get('/api/analytics/overview'),
+        api.get('/api/analytics/influencer/overview'),
         api.get('/api/affiliate-links'),
         api.get('/api/analytics/influencer/earnings-chart'),
         api.get('/api/subscriptions/current'),
@@ -86,7 +88,10 @@ const InfluencerDashboard = () => {
           total_earnings: 0,
           total_clicks: 0,
           total_sales: 0,
-          balance: 0
+          balance: 0,
+          earnings_growth: 0,
+          clicks_growth: 0,
+          sales_growth: 0
         });
       }
 
@@ -143,10 +148,16 @@ const InfluencerDashboard = () => {
       // Gérer les données de gains
       if (earningsRes.status === 'fulfilled') {
         const earningsDataResult = earningsRes.value.data.data || [];
-        setEarningsData(earningsDataResult);
+        // Mapper pour utiliser le bon format
+        const mappedEarnings = earningsDataResult.map(day => ({
+          date: day.formatted_date || day.date,
+          gains: day.earnings || 0,
+          commissions: day.commissions || 0
+        }));
+        setEarningsData(mappedEarnings);
 
         // Créer les données de performance basées sur les gains réels
-        const perfData = earningsDataResult.map(day => ({
+        const perfData = mappedEarnings.map(day => ({
           date: day.date,
           clics: Math.round((day.gains || 0) * 3), // Estimation basée sur les gains
           conversions: Math.round((day.gains || 0) / 25) // Estimation: gain moyen de 25€ par conversion
@@ -431,35 +442,59 @@ const InfluencerDashboard = () => {
 
         {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Gains Totaux"
-          value={stats?.total_earnings || 0}
-          isCurrency={true}
-          icon={<DollarSign className="text-green-600" size={24} />}
-          trend={stats?.earnings_growth || 0}
-        />
-        <StatCard
-          title="Clics Générés"
-          value={stats?.total_clicks || 0}
-          icon={<MousePointer className="text-indigo-600" size={24} />}
-          trend={stats?.clicks_growth || 0}
-        />
-        <StatCard
-          title="Ventes Réalisées"
-          value={stats?.total_sales || 0}
-          icon={<ShoppingCart className="text-purple-600" size={24} />}
-          trend={stats?.sales_growth || 0}
-        />
-        <StatCard
-          title="Taux de Conversion"
-          value={(() => {
-            const clicks = stats?.total_clicks || 0;
-            const sales = stats?.total_sales || 0;
-            if (clicks === 0) return '0.00%';
-            return `${((sales / clicks) * 100).toFixed(2)}%`;
-          })()}
-          icon={<Target className="text-orange-600" size={24} />}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0 }}
+        >
+          <StatCard
+            title="Gains Totaux"
+            value={<CountUp end={stats?.total_earnings || 0} duration={2.5} decimals={2} separator=" " suffix="€" />}
+            isCurrency={false}
+            icon={<DollarSign className="text-green-600" size={24} />}
+            trend={stats?.earnings_growth || 0}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <StatCard
+            title="Clics Générés"
+            value={<CountUp end={stats?.total_clicks || 0} duration={2} separator=" " />}
+            icon={<MousePointer className="text-indigo-600" size={24} />}
+            trend={stats?.clicks_growth || 0}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <StatCard
+            title="Ventes Réalisées"
+            value={<CountUp end={stats?.total_sales || 0} duration={2} />}
+            icon={<ShoppingCart className="text-purple-600" size={24} />}
+            trend={stats?.sales_growth || 0}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <StatCard
+            title="Taux de Conversion"
+            value={(() => {
+              const clicks = stats?.total_clicks || 0;
+              const sales = stats?.total_sales || 0;
+              if (clicks === 0) return '0.00%';
+              return `${((sales / clicks) * 100).toFixed(2)}%`;
+            })()}
+            icon={<Target className="text-orange-600" size={24} />}
+          />
+        </motion.div>
       </div>
 
       {/* Subscription Card */}
@@ -565,74 +600,184 @@ const InfluencerDashboard = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Earnings Chart */}
-        <Card title="Évolution des Gains (7 jours)" icon={<TrendingUp size={20} />}>
-          <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={earningsData}>
-              <defs>
-                <linearGradient id="colorGains" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip formatter={(value) => `${value} €`} />
-              <Area
-                type="monotone"
-                dataKey="gains"
-                stroke="#10b981"
-                fillOpacity={1}
-                fill="url(#colorGains)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Card title="Évolution des Gains (7 jours)" icon={<TrendingUp size={20} />}>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={earningsData}>
+                <defs>
+                  <linearGradient id="colorGains" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
+                <XAxis 
+                  dataKey="date" 
+                  stroke="#9ca3af"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  stroke="#9ca3af"
+                  style={{ fontSize: '12px' }}
+                />
+                <Tooltip 
+                  formatter={(value) => `${value} €`}
+                  contentStyle={{ 
+                    backgroundColor: '#1f2937', 
+                    border: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="gains"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill="url(#colorGains)"
+                  dot={{ fill: '#10b981', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Card>
+        </motion.div>
 
         {/* Performance Chart */}
-        <Card title="Performance (Clics vs Conversions)" icon={<Target size={20} />}>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={performanceData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis yAxisId="left" stroke="#6366f1" />
-              <YAxis yAxisId="right" orientation="right" stroke="#f59e0b" />
-              <Tooltip />
-              <Legend />
-              <Line yAxisId="left" type="monotone" dataKey="clics" stroke="#6366f1" activeDot={{ r: 8 }} />
-              <Line yAxisId="right" type="monotone" dataKey="conversions" stroke="#f59e0b" activeDot={{ r: 8 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        >
+          <Card title="Performance (Clics vs Conversions)" icon={<Target size={20} />}>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={performanceData}>
+                <defs>
+                  <linearGradient id="colorClics" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="colorConversions" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
+                <XAxis 
+                  dataKey="date"
+                  stroke="#9ca3af"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  yAxisId="left" 
+                  stroke="#6366f1"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis 
+                  yAxisId="right" 
+                  orientation="right" 
+                  stroke="#f59e0b"
+                  style={{ fontSize: '12px' }}
+                />
+                <Tooltip
+                  contentStyle={{ 
+                    backgroundColor: '#1f2937', 
+                    border: 'none',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                  }}
+                />
+                <Legend />
+                <Line 
+                  yAxisId="left" 
+                  type="monotone" 
+                  dataKey="clics" 
+                  stroke="#6366f1" 
+                  strokeWidth={3}
+                  dot={{ fill: '#6366f1', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                />
+                <Line 
+                  yAxisId="right" 
+                  type="monotone" 
+                  dataKey="conversions" 
+                  stroke="#f59e0b" 
+                  strokeWidth={3}
+                  dot={{ fill: '#f59e0b', r: 4, strokeWidth: 2, stroke: '#fff' }}
+                  activeDot={{ r: 6, strokeWidth: 2, stroke: '#fff' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </Card>
+        </motion.div>
       </div>
 
       {/* Product Earnings and Links */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Product Earnings */}
-        <Card title="Top Produits (Gains)" icon={<Wallet size={20} />}>
-          {productEarnings.length === 0 ? (
-            <EmptyState
-              icon={<Sparkles />}
-              title="Aucun gain enregistré"
-              description="Commencez à partager vos liens d'affiliation pour générer des gains."
-            />
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={productEarnings}
-                layout="vertical"
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis type="category" dataKey="name" width={100} />
-                <Tooltip formatter={(value) => `${value.toLocaleString()} €`} />
-                <Legend />
-                <Bar dataKey="gains" fill="#8b5cf6" />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <Card title="Top Produits (Gains)" icon={<Wallet size={20} />}>
+            {productEarnings.length === 0 ? (
+              <EmptyState
+                icon={<Sparkles />}
+                title="Aucun gain enregistré"
+                description="Commencez à partager vos liens d'affiliation pour générer des gains."
+              />
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={productEarnings}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <defs>
+                    <linearGradient id="colorProductGains" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.9}/>
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.6}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
+                  <XAxis 
+                    type="number"
+                    stroke="#9ca3af"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    width={100}
+                    stroke="#9ca3af"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <Tooltip 
+                    formatter={(value) => `${value.toLocaleString()} €`}
+                    contentStyle={{ 
+                      backgroundColor: '#1f2937', 
+                      border: 'none',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+                    }}
+                  />
+                  <Legend />
+                  <Bar 
+                    dataKey="gains" 
+                    fill="url(#colorProductGains)"
+                    radius={[0, 8, 8, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </Card>
+        </motion.div>
 
         {/* Affiliate Links Table */}
         <Card title="Mes Liens d'Affiliation" icon={<LinkIcon size={20} />}>

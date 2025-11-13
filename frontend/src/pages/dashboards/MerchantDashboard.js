@@ -8,6 +8,8 @@ import Card from '../../components/common/Card';
 import SkeletonDashboard from '../../components/common/SkeletonLoader';
 import EmptyState from '../../components/common/EmptyState';
 import GamificationWidget from '../../components/GamificationWidget';
+import { motion } from 'framer-motion';
+import CountUp from 'react-countup';
 import {
   DollarSign, ShoppingBag, Users, TrendingUp,
   Package, Eye, Target, Award, Plus, Search, FileText, Settings, RefreshCw,
@@ -52,13 +54,25 @@ const MerchantDashboard = () => {
       const [statsRes, productsRes, salesChartRes, performanceRes, subscriptionRes, sentRequestsRes] = results;
 
       // Gérer les statistiques
-      if (statsRes.status === 'fulfilled' && performanceRes.status === 'fulfilled') {
+      if (performanceRes.status === 'fulfilled') {
+        const performance = performanceRes.value.data;
         setStats({
-          ...statsRes.value.data,
-          performance: performanceRes.value.data
+          total_sales: performance.total_sales || 0,
+          total_revenue: performance.total_revenue || 0,
+          products_count: performance.products_count || 0,
+          affiliates_count: performance.affiliates_count || 0,
+          total_clicks: performance.total_clicks || 0,
+          conversion_rate: performance.conversion_rate || 0,
+          roi: performance.total_revenue > 0 ? ((performance.total_revenue / (performance.total_revenue * 0.1)) * 100) : 0,
+          performance: {
+            conversion_rate: performance.conversion_rate || 0,
+            engagement_rate: performance.engagement_rate || 0,
+            satisfaction_rate: performance.satisfaction_rate || 0,
+            monthly_goal_progress: performance.monthly_goal_progress || 0
+          }
         });
       } else {
-        console.error('Error loading stats:', statsRes.reason || performanceRes.reason);
+        console.error('Error loading stats:', performanceRes.reason);
         toast.error('Erreur lors du chargement des statistiques');
         setStats({
           total_sales: 0,
@@ -100,7 +114,12 @@ const MerchantDashboard = () => {
 
       // Gérer les données de ventes
       if (salesChartRes.status === 'fulfilled') {
-        setSalesData(salesChartRes.value.data.data || []);
+        const chartData = salesChartRes.value.data.data || [];
+        setSalesData(chartData.map(day => ({
+          name: day.formatted_date || day.date,
+          sales: day.sales || 0,
+          orders: day.orders || 0
+        })));
       } else {
         console.error('Error loading sales chart:', salesChartRes.reason);
         setSalesData([]);
@@ -252,31 +271,54 @@ const MerchantDashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Chiffre d'Affaires"
-          value={typeof stats?.total_sales === 'number' ? stats.total_sales : 0}
-          isCurrency={true}
-          icon={<DollarSign className="text-green-600" size={24} />}
-          trend={stats?.sales_growth || 0}
-        />
-        <StatCard
-          title="Produits Actifs"
-          value={typeof stats?.products_count === 'number' ? stats.products_count : products.length || 0}
-          icon={<Package className="text-indigo-600" size={24} />}
-        />
-        <StatCard
-          title="Affiliés Actifs"
-          value={typeof stats?.affiliates_count === 'number' ? stats.affiliates_count : 0}
-          icon={<Users className="text-purple-600" size={24} />}
-          trend={stats?.affiliates_growth || 0}
-        />
-        <StatCard
-          title="ROI Marketing"
-          value={typeof stats?.roi === 'number' && !isNaN(stats.roi) ? stats.roi : 0}
-          suffix="%"
-          icon={<TrendingUp className="text-orange-600" size={24} />}
-          trend={stats?.roi_growth || 0}
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0 }}
+        >
+          <StatCard
+            title="Chiffre d'Affaires"
+            value={<CountUp end={typeof stats?.total_revenue === 'number' ? stats.total_revenue : 0} duration={2.5} decimals={2} separator=" " suffix="€" />}
+            isCurrency={false}
+            icon={<DollarSign className="text-green-600" size={24} />}
+            trend={stats?.sales_growth || 0}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <StatCard
+            title="Produits Actifs"
+            value={<CountUp end={typeof stats?.products_count === 'number' ? stats.products_count : products.length || 0} duration={2} />}
+            icon={<Package className="text-indigo-600" size={24} />}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <StatCard
+            title="Affiliés Actifs"
+            value={<CountUp end={typeof stats?.affiliates_count === 'number' ? stats.affiliates_count : 0} duration={2} />}
+            icon={<Users className="text-purple-600" size={24} />}
+            trend={stats?.affiliates_growth || 0}
+          />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <StatCard
+            title="ROI Marketing"
+            value={<CountUp end={typeof stats?.roi === 'number' && !isNaN(stats.roi) ? stats.roi : 0} duration={2} decimals={1} suffix="%" />}
+            icon={<TrendingUp className="text-orange-600" size={24} />}
+            trend={stats?.roi_growth || 0}
+          />
+        </motion.div>
       </div>
 
       {/* Subscription Card */}
@@ -488,20 +530,35 @@ const MerchantDashboard = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Chart */}
-        <Card title="Ventes des 7 Derniers Jours" icon={<TrendingUp size={20} />}>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={salesData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis yAxisId="left" orientation="left" stroke="#6366f1" />
-              <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
-              <Tooltip />
-              <Legend />
-              <Bar yAxisId="left" dataKey="ventes" fill="#6366f1" name="Ventes" />
-              <Bar yAxisId="right" dataKey="revenus" fill="#10b981" name="Revenus (€)" />
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <Card title="Ventes des 30 Derniers Jours" icon={<TrendingUp size={20} />}>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={salesData}>
+                <defs>
+                  <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9}/>
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.6}/>
+                  </linearGradient>
+                  <linearGradient id="colorOrders" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.6}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" />
+                <Tooltip contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
+                <Legend />
+                <Bar dataKey="sales" fill="url(#colorSales)" name="Ventes (€)" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="orders" fill="url(#colorOrders)" name="Commandes" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </motion.div>
 
         {/* Performance Overview */}
         <Card title="Vue d'Ensemble Performance" icon={<Target size={20} />}>
